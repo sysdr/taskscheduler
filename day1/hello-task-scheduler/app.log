@@ -1,0 +1,28 @@
+🚀 Starting Hello Task Scheduler Application...
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.0)
+
+18:45:36.802 [main] INFO  c.t.h.HelloTaskSchedulerApplication - Starting HelloTaskSchedulerApplication v1.0.0 using Java 17.0.2 with PID 52756 (/Users/sumedhshende/sysd/taskscheduler/day1/hello-task-scheduler/target/hello-task-scheduler-1.0.0.jar started by sumedhshende in /Users/sumedhshende/sysd/taskscheduler/day1/hello-task-scheduler)
+18:45:36.804 [main] INFO  c.t.h.HelloTaskSchedulerApplication - No active profile set, falling back to 1 default profile: "default"
+18:45:37.299 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+18:45:37.306 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+18:45:37.306 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.16]
+18:45:37.329 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+18:45:37.329 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 475 ms
+18:45:37.500 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path ''
+⏹️  60 seconds elapsed. Shutting down gracefully...
+📊 Total executions completed: 0
+18:45:37.510 [main] INFO  c.t.h.HelloTaskSchedulerApplication - Started HelloTaskSchedulerApplication in 0.918 seconds (process running for 1.188)
+✅ Hello Scheduler Service initialized at 2025-07-29 18:45:37
+📋 Will run for 60 seconds, executing every 10 seconds
+⏰ Expected executions: 6
+
+18:45:38.591 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+18:45:38.592 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+18:46:07.520 [SpringApplicationShutdownHook] INFO  o.s.c.s.DefaultLifecycleProcessor - Failed to shut down 1 bean with phase value 2147483647 within timeout of 30000ms: [taskScheduler]
