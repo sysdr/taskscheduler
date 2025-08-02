@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler Pro - Enterprise Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-clock"></i>
+                    <span>TaskScheduler Pro</span>
+                </div>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item active">
+                    <a href="#dashboard" class="nav-link">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#tasks" class="nav-link">
+                        <i class="fas fa-tasks"></i>
+                        <span>Tasks</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#schedules" class="nav-link">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Schedules</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#executions" class="nav-link">
+                        <i class="fas fa-history"></i>
+                        <span>Executions</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#monitoring" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Monitoring</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#settings" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name">Admin User</span>
+                        <span class="user-role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Dashboard Overview</h1>
+                </div>
+                <div class="header-right">
+                    <div class="status-indicator">
+                        <span class="status-dot online"></span>
+                        <span class="status-text">System Online</span>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        <button class="btn btn-secondary">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Key Metrics Cards -->
+                <div class="metrics-section">
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon health">
+                                <i class="fas fa-heartbeat"></i>
+                            </div>
+                            <div class="metric-content">
+                                <h3>Health Checks</h3>
+                                <div class="metric-value" th:text="${healthCheckCount}">0</div>
+                                <div class="metric-label">Fixed Rate (5s)</div>
+                                <div class="metric-trend positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span>+12%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-icon cleanup">
+                                <i class="fas fa-broom"></i>
+                            </div>
+                            <div class="metric-content">
+                                <h3>Cleanup Tasks</h3>
+                                <div class="metric-value" th:text="${cleanupCount}">0</div>
+                                <div class="metric-label">Fixed Delay (15s)</div>
+                                <div class="metric-trend positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span>+8%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-icon reports">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="metric-content">
+                                <h3>Reports Generated</h3>
+                                <div class="metric-value" th:text="${reportCount}">0</div>
+                                <div class="metric-label">Cron (Every Minute)</div>
+                                <div class="metric-trend positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span>+15%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-icon performance">
+                                <i class="fas fa-tachometer-alt"></i>
+                            </div>
+                            <div class="metric-content">
+                                <h3>Avg Response Time</h3>
+                                <div class="metric-value">245ms</div>
+                                <div class="metric-label">Last 24 hours</div>
+                                <div class="metric-trend negative">
+                                    <i class="fas fa-arrow-down"></i>
+                                    <span>-3%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts and Analytics -->
+                <div class="analytics-section">
+                    <div class="chart-row">
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>Task Execution Overview</h3>
+                                <div class="chart-actions">
+                                    <button class="btn btn-sm btn-outline">24h</button>
+                                    <button class="btn btn-sm btn-outline active">7d</button>
+                                    <button class="btn btn-sm btn-outline">30d</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="executionChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <h3>Task Status Distribution</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Executions Table -->
+                <div class="executions-section">
+                    <div class="section-header">
+                        <h3>Recent Task Executions</h3>
+                        <div class="section-actions">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                New Task
+                            </button>
+                            <button class="btn btn-outline">
+                                <i class="fas fa-download"></i>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Task Name</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Start Time</th>
+                                    <th>Duration</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="execution : ${executions}" 
+                                    th:class="${execution.status == 'SUCCESS'} ? 'success-row' : 'error-row'">
+                                    <td>
+                                        <div class="task-info">
+                                            <i class="fas fa-clock task-icon"></i>
+                                            <span th:text="${execution.taskName}">Task Name</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-secondary" th:text="${execution.executionType}">Type</span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge" 
+                                              th:class="${execution.status == 'SUCCESS'} ? 'success' : 'error'"
+                                              th:text="${execution.status}">Status</span>
+                                    </td>
+                                    <td th:text="${#temporals.format(execution.executionTime, 'HH:mm:ss')}">Time</td>
+                                    <td th:text="${execution.executionDuration + 'ms'}">Duration</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn btn-sm btn-icon" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-icon" title="Rerun">
+                                                <i class="fas fa-redo"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="/js/dashboard.js"></script>
+    <script>
+        // Auto-refresh every 10 seconds
+        setInterval(() => {
+            location.reload();
+        }, 10000);
+    </script>
+</body>
+</html>
