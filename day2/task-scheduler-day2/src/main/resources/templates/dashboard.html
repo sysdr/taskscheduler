@@ -108,7 +108,7 @@
                             </div>
                             <div class="metric-content">
                                 <h3>Health Checks</h3>
-                                <div class="metric-value" th:text="${healthCheckCount}">0</div>
+                                <div class="metric-value" data-metric="health" th:text="${healthCheckCount}">0</div>
                                 <div class="metric-label">Fixed Rate (5s)</div>
                                 <div class="metric-trend positive">
                                     <i class="fas fa-arrow-up"></i>
@@ -123,7 +123,7 @@
                             </div>
                             <div class="metric-content">
                                 <h3>Cleanup Tasks</h3>
-                                <div class="metric-value" th:text="${cleanupCount}">0</div>
+                                <div class="metric-value" data-metric="cleanup" th:text="${cleanupCount}">0</div>
                                 <div class="metric-label">Fixed Delay (15s)</div>
                                 <div class="metric-trend positive">
                                     <i class="fas fa-arrow-up"></i>
@@ -138,7 +138,7 @@
                             </div>
                             <div class="metric-content">
                                 <h3>Reports Generated</h3>
-                                <div class="metric-value" th:text="${reportCount}">0</div>
+                                <div class="metric-value" data-metric="reports" th:text="${reportCount}">0</div>
                                 <div class="metric-label">Cron (Every Minute)</div>
                                 <div class="metric-trend positive">
                                     <i class="fas fa-arrow-up"></i>
@@ -197,7 +197,7 @@
                     <div class="section-header">
                         <h3>Recent Task Executions</h3>
                         <div class="section-actions">
-                            <button class="btn btn-primary">
+                            <button class="btn btn-primary" onclick="showCreateTaskModal()">
                                 <i class="fas fa-plus"></i>
                                 New Task
                             </button>
@@ -259,11 +259,5 @@
     </div>
     
     <script src="/js/dashboard.js"></script>
-    <script>
-        // Auto-refresh every 10 seconds
-        setInterval(() => {
-            location.reload();
-        }, 10000);
-    </script>
 </body>
 </html>

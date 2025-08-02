@@ -48,6 +48,13 @@ public class DashboardController {
     @ResponseBody
     public Map<String, Object> getDashboardData() {
         Map<String, Object> data = new HashMap<>();
+        // Task scheduler metrics
+        data.put("healthCheckCount", taskSchedulerService.getHealthCheckCount());
+        data.put("cleanupCount", taskSchedulerService.getCleanupCount());
+        data.put("reportCount", taskSchedulerService.getReportCount());
+        data.put("executions", taskSchedulerService.getExecutionHistory());
+        
+        // Task service data
         data.put("tasks", taskService.getAllTasks());
         data.put("activeTasks", taskService.getActiveTasks());
         data.put("taskStatistics", taskService.getTaskStatistics());

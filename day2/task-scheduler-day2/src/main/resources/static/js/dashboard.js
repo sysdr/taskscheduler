@@ -1,7 +1,100 @@
 // TaskScheduler Pro - Enterprise Dashboard JavaScript
 
+// Handle save settings
+function handleSaveSettings() {
+    const settings = {
+        refreshInterval: parseInt(document.getElementById('refreshInterval').value) || 10,
+        emailNotifications: document.getElementById('emailNotifications').checked,
+        taskFailureAlerts: document.getElementById('taskFailureAlerts').checked,
+        applicationName: document.getElementById('applicationName').value || 'TaskScheduler Pro'
+    };
+    
+    saveSettings(settings);
+}
+
+// Handle reset settings
+function handleResetSettings() {
+    const defaultSettings = {
+        refreshInterval: 10,
+        emailNotifications: true,
+        taskFailureAlerts: true,
+        applicationName: 'TaskScheduler Pro'
+    };
+    
+    saveSettings(defaultSettings);
+    showSettingsView(); // Refresh the view
+}
+
+// Refresh dashboard data
+async function refreshDashboardData() {
+    try {
+        const response = await fetch('/api/dashboard-data');
+        if (!response.ok) throw new Error('Failed to fetch dashboard data');
+        
+        const data = await response.json();
+        
+        // Update metrics
+        if (data.healthCheckCount !== undefined) {
+            document.querySelector('.metric-value[data-metric="health"]').textContent = data.healthCheckCount;
+        }
+        if (data.cleanupCount !== undefined) {
+            document.querySelector('.metric-value[data-metric="cleanup"]').textContent = data.cleanupCount;
+        }
+        if (data.reportCount !== undefined) {
+            document.querySelector('.metric-value[data-metric="reports"]').textContent = data.reportCount;
+        }
+        
+        // Update execution table
+        const tbody = document.querySelector('.data-table tbody');
+        if (tbody && data.executions) {
+            tbody.innerHTML = data.executions.map(execution => `
+                <tr class="${execution.status === 'SUCCESS' ? 'success-row' : 'error-row'}">
+                    <td>
+                        <div class="task-info">
+                            <i class="fas fa-clock task-icon"></i>
+                            <span>${execution.taskName}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge badge-secondary">${execution.executionType}</span>
+                    </td>
+                    <td>
+                        <span class="status-badge ${execution.status === 'SUCCESS' ? 'success' : 'error'}">${execution.status}</span>
+                    </td>
+                    <td>${new Date(execution.executionTime).toLocaleTimeString()}</td>
+                    <td>${execution.executionDuration}ms</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-icon" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-icon" title="Rerun">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // Update charts
+        if (window.executionChart) {
+            updateCharts(data);
+        }
+        
+        console.log('Dashboard data refreshed successfully');
+    } catch (error) {
+        console.error('Error refreshing dashboard:', error);
+    }
+}
+
+// Initialize dashboard
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 TaskScheduler Pro Dashboard Loaded');
+    
+    // Load saved settings
+    const settings = loadSettings();
+    console.log('Loaded settings:', settings);
     
     // Initialize all dashboard components
     initializeSidebar();
@@ -9,8 +102,33 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeInteractiveFeatures();
     initializeRealTimeUpdates();
     
+    // Initialize refresh interval
+    if (!window.dashboardRefreshInterval) {
+        console.log('Initializing refresh interval to', settings.refreshInterval, 'seconds');
+        updateRefreshInterval(settings.refreshInterval);
+    }
+    
+    // Initial data load
+    refreshDashboardData();
+    
     // Add some professional touches
     addProfessionalFeatures();
+    
+    // Add event listeners for task management
+    document.addEventListener('click', function(e) {
+        // Handle New Task button click
+        if (e.target.closest('.btn-primary') && e.target.closest('.section-actions')) {
+            console.log('New Task button clicked');
+            showCreateTaskModal();
+        }
+    });
+    
+    // Add beforeunload handler to clean up intervals
+    window.addEventListener('beforeunload', () => {
+        if (window.dashboardRefreshInterval) {
+            clearInterval(window.dashboardRefreshInterval);
+        }
+    });
 });
 
 // Sidebar functionality
@@ -382,18 +500,20 @@ function showCreateTaskModal() {
                 <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="createTaskForm">
+                <form id="createTaskForm" onsubmit="return false;">
                     <div class="form-group">
                         <label for="taskName">Task Name *</label>
-                        <input type="text" id="taskName" name="name" required class="form-input">
+                        <input type="text" id="taskName" name="name" required class="form-input" 
+                               placeholder="Enter task name">
                     </div>
                     <div class="form-group">
                         <label for="taskDescription">Description</label>
-                        <textarea id="taskDescription" name="description" class="form-input" rows="3"></textarea>
+                        <textarea id="taskDescription" name="description" class="form-input" rows="3"
+                                 placeholder="Enter task description"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="taskType">Task Type *</label>
-                        <select id="taskType" name="type" required class="form-select">
+                        <select id="taskType" name="type" required class="form-select" onchange="updateScheduleHelp()">
                             <option value="">Select task type</option>
                             <option value="FIXED_RATE">Fixed Rate</option>
                             <option value="FIXED_DELAY">Fixed Delay</option>
@@ -402,12 +522,16 @@ function showCreateTaskModal() {
                     </div>
                     <div class="form-group">
                         <label for="taskSchedule">Schedule *</label>
-                        <input type="text" id="taskSchedule" name="schedule" required class="form-input" 
-                               placeholder="e.g., 5000 (milliseconds) or 0 * * * * * (cron)">
-                        <small class="form-help">
-                            For Fixed Rate/Delay: Enter milliseconds (e.g., 5000 for 5 seconds)<br>
-                            For Cron: Enter cron expression (e.g., 0 * * * * * for every minute)
+                        <input type="text" id="taskSchedule" name="schedule" required class="form-input">
+                        <small id="scheduleHelp" class="form-help">
+                            Select a schedule type to see format help
                         </small>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="taskActive" name="active" checked>
+                            Enable task immediately
+                        </label>
                     </div>
                 </form>
             </div>
@@ -420,26 +544,60 @@ function showCreateTaskModal() {
     
     document.body.appendChild(modal);
     
-    // Add event listener for form submission
-    document.getElementById('createTaskForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        createTask();
-    });
+    // Initialize schedule help text
+    updateScheduleHelp();
+    
+    // Focus on task name input
+    setTimeout(() => {
+        document.getElementById('taskName').focus();
+    }, 100);
 }
 
 // Create task
 async function createTask() {
     const form = document.getElementById('createTaskForm');
-    const formData = new FormData(form);
+    
+    // Validate form
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Get form data
+    const name = document.getElementById('taskName').value.trim();
+    const description = document.getElementById('taskDescription').value.trim();
+    const type = document.getElementById('taskType').value;
+    const schedule = document.getElementById('taskSchedule').value.trim();
+    const active = document.getElementById('taskActive').checked;
+    
+    // Additional validation
+    if (!name || !type || !schedule) {
+        showNotification('Please fill in all required fields', 'error');
+        return;
+    }
+    
+    // Validate schedule format based on type
+    if (!validateSchedule(type, schedule)) {
+        showNotification('Invalid schedule format', 'error');
+        return;
+    }
     
     const taskData = {
-        name: formData.get('name'),
-        description: formData.get('description'),
-        type: formData.get('type'),
-        schedule: formData.get('schedule')
+        name,
+        description,
+        type,
+        schedule,
+        active,
+        status: active ? 'ACTIVE' : 'PAUSED'
     };
     
     try {
+        // Show loading state
+        const createButton = document.querySelector('.modal-footer .btn-primary');
+        const originalText = createButton.innerHTML;
+        createButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+        createButton.disabled = true;
+        
         const response = await fetch('/api/tasks', {
             method: 'POST',
             headers: {
@@ -452,13 +610,44 @@ async function createTask() {
             const createdTask = await response.json();
             closeModal();
             showNotification('Task created successfully!', 'success');
-            loadTasks(); // Refresh the tasks list
+            
+            // Refresh both tasks list and dashboard data
+            loadTasks();
+            refreshDashboardData();
         } else {
-            showNotification('Error creating task', 'error');
+            const error = await response.text();
+            showNotification(`Error creating task: ${error}`, 'error');
+            
+            // Reset button
+            createButton.innerHTML = originalText;
+            createButton.disabled = false;
         }
     } catch (error) {
         console.error('Error creating task:', error);
-        showNotification('Error creating task', 'error');
+        showNotification('Error creating task: ' + error.message, 'error');
+        
+        // Reset button
+        const createButton = document.querySelector('.modal-footer .btn-primary');
+        createButton.innerHTML = 'Create Task';
+        createButton.disabled = false;
+    }
+}
+
+// Validate schedule format
+function validateSchedule(type, schedule) {
+    switch (type) {
+        case 'FIXED_RATE':
+        case 'FIXED_DELAY':
+            // Should be a positive number
+            return /^\d+$/.test(schedule) && parseInt(schedule) > 0;
+            
+        case 'CRON':
+            // Basic cron validation (6 or 7 space-separated fields)
+            const fields = schedule.split(' ').filter(f => f.length > 0);
+            return fields.length >= 6 && fields.length <= 7;
+            
+        default:
+            return false;
     }
 }
 
@@ -679,6 +868,219 @@ function formatDateTime(dateTimeString) {
     return date.toLocaleString();
 }
 
+// Show create schedule modal
+function showCreateScheduleModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Schedule</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="createScheduleForm">
+                    <div class="form-group">
+                        <label for="scheduleName">Schedule Name *</label>
+                        <input type="text" id="scheduleName" name="name" required class="form-input" 
+                               placeholder="e.g., Daily Backup">
+                    </div>
+                    <div class="form-group">
+                        <label for="scheduleType">Schedule Type *</label>
+                        <select id="scheduleType" name="type" required class="form-select" onchange="updateScheduleHelp()">
+                            <option value="">Select schedule type</option>
+                            <option value="FIXED_RATE">Fixed Rate</option>
+                            <option value="FIXED_DELAY">Fixed Delay</option>
+                            <option value="CRON">Cron Expression</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="scheduleExpression">Schedule Expression *</label>
+                        <input type="text" id="scheduleExpression" name="expression" required class="form-input">
+                        <small id="scheduleHelp" class="form-help">
+                            Select a schedule type to see expression format help
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label for="scheduleDescription">Description</label>
+                        <textarea id="scheduleDescription" name="description" class="form-input" rows="3"
+                                  placeholder="Enter schedule description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="scheduleEnabled" name="enabled" checked>
+                            Enable schedule immediately
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveSchedule()">Create Schedule</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Initialize the schedule type help text
+    updateScheduleHelp();
+}
+
+// Update schedule help text based on selected type
+function updateScheduleHelp() {
+    const scheduleType = document.getElementById('scheduleType').value;
+    const helpText = document.getElementById('scheduleHelp');
+    const expressionInput = document.getElementById('scheduleExpression');
+    
+    switch(scheduleType) {
+        case 'FIXED_RATE':
+            helpText.textContent = 'Enter interval in milliseconds (e.g., 5000 for 5 seconds)';
+            expressionInput.placeholder = 'e.g., 5000';
+            break;
+        case 'FIXED_DELAY':
+            helpText.textContent = 'Enter delay in milliseconds (e.g., 10000 for 10 seconds)';
+            expressionInput.placeholder = 'e.g., 10000';
+            break;
+        case 'CRON':
+            helpText.textContent = 'Enter cron expression (e.g., 0 */5 * * * * for every 5 minutes)';
+            expressionInput.placeholder = 'e.g., 0 */5 * * * *';
+            break;
+        default:
+            helpText.textContent = 'Select a schedule type to see expression format help';
+            expressionInput.placeholder = '';
+    }
+}
+
+// Save schedule
+async function saveSchedule() {
+    const form = document.getElementById('createScheduleForm');
+    const formData = new FormData(form);
+    
+    const scheduleData = {
+        name: formData.get('name'),
+        type: formData.get('type'),
+        expression: formData.get('expression'),
+        description: formData.get('description'),
+        enabled: formData.get('enabled') === 'on'
+    };
+    
+    try {
+        const response = await fetch('/api/schedules', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(scheduleData)
+        });
+        
+        if (response.ok) {
+            closeModal();
+            showNotification('Schedule created successfully!', 'success');
+            loadSchedules(); // Refresh the schedules list
+        } else {
+            const error = await response.text();
+            showNotification('Error creating schedule: ' + error, 'error');
+        }
+    } catch (error) {
+        console.error('Error creating schedule:', error);
+        showNotification('Error creating schedule', 'error');
+    }
+}
+
+// Load schedules
+async function loadSchedules() {
+    try {
+        const response = await fetch('/api/schedules');
+        const schedules = await response.json();
+        displaySchedules(schedules);
+    } catch (error) {
+        console.error('Error loading schedules:', error);
+        showNotification('Error loading schedules', 'error');
+    }
+}
+
+// Display schedules
+function displaySchedules(schedules) {
+    const calendarGrid = document.querySelector('.calendar-grid');
+    if (!calendarGrid) return;
+    
+    if (schedules.length === 0) {
+        calendarGrid.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-calendar-times"></i>
+                <h4>No schedules found</h4>
+                <p>Create your first schedule to get started</p>
+                <button class="btn btn-primary" onclick="showCreateScheduleModal()">
+                    <i class="fas fa-plus"></i>
+                    Create Schedule
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    // Group schedules by day
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const schedulesHtml = `
+        <div class="calendar-day">
+            <div class="day-header">Today</div>
+            ${schedules
+                .filter(schedule => isScheduledForToday(schedule))
+                .map(schedule => `
+                    <div class="scheduled-task ${schedule.enabled ? 'active' : 'inactive'}">
+                        <span class="time">${getNextExecutionTime(schedule)}</span>
+                        <span class="task-name">${schedule.name}</span>
+                        <div class="task-actions">
+                            <button class="btn btn-sm btn-icon" onclick="editSchedule('${schedule.id}')" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-icon" onclick="toggleSchedule('${schedule.id}')" 
+                                    title="${schedule.enabled ? 'Disable' : 'Enable'}">
+                                <i class="fas fa-${schedule.enabled ? 'pause' : 'play'}"></i>
+                            </button>
+                            <button class="btn btn-sm btn-icon" onclick="deleteSchedule('${schedule.id}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('')}
+        </div>
+        <div class="calendar-day">
+            <div class="day-header">Tomorrow</div>
+            ${schedules
+                .filter(schedule => isScheduledForTomorrow(schedule))
+                .map(schedule => `
+                    <div class="scheduled-task ${schedule.enabled ? 'active' : 'inactive'}">
+                        <span class="time">${getNextExecutionTime(schedule)}</span>
+                        <span class="task-name">${schedule.name}</span>
+                    </div>
+                `).join('')}
+        </div>
+    `;
+    
+    calendarGrid.innerHTML = schedulesHtml;
+}
+
+// Helper functions for schedule display
+function isScheduledForToday(schedule) {
+    // Implement logic to check if schedule runs today
+    return true; // Simplified for demo
+}
+
+function isScheduledForTomorrow(schedule) {
+    // Implement logic to check if schedule runs tomorrow
+    return true; // Simplified for demo
+}
+
+function getNextExecutionTime(schedule) {
+    // Implement logic to calculate next execution time
+    return new Date().toLocaleTimeString(); // Simplified for demo
+}
+
 // Show schedules view
 function showSchedulesView() {
     const dashboardContent = document.querySelector('.dashboard-content');
@@ -688,7 +1090,7 @@ function showSchedulesView() {
         <div class="section-header">
             <h3>Schedule Configuration</h3>
             <div class="section-actions">
-                <button class="btn btn-primary">
+                <button class="btn btn-primary" onclick="showCreateScheduleModal()">
                     <i class="fas fa-plus"></i>
                     New Schedule
                 </button>
@@ -857,17 +1259,63 @@ function showMonitoringView() {
     `;
 }
 
+// Load settings from localStorage
+function loadSettings() {
+    const settings = JSON.parse(localStorage.getItem('dashboardSettings') || '{}');
+    return {
+        refreshInterval: settings.refreshInterval || 10,
+        emailNotifications: settings.emailNotifications !== false,
+        taskFailureAlerts: settings.taskFailureAlerts !== false,
+        applicationName: settings.applicationName || 'TaskScheduler Pro'
+    };
+}
+
+// Save settings to localStorage
+function saveSettings(settings) {
+    localStorage.setItem('dashboardSettings', JSON.stringify(settings));
+    showNotification('Settings saved successfully!', 'success');
+    
+    // Apply refresh interval immediately
+    updateRefreshInterval(settings.refreshInterval);
+}
+
+// Update refresh interval
+function updateRefreshInterval(seconds) {
+    console.log('Updating refresh interval to', seconds, 'seconds');
+    
+    // Clear existing interval
+    if (window.dashboardRefreshInterval) {
+        clearInterval(window.dashboardRefreshInterval);
+        window.dashboardRefreshInterval = null;
+    }
+    
+    // Validate seconds
+    const interval = Math.max(5, Math.min(60, seconds || 10)) * 1000;
+    
+    // Set new interval
+    window.dashboardRefreshInterval = setInterval(() => {
+        console.log('Refreshing dashboard data...');
+        refreshDashboardData();
+    }, interval);
+    
+    // Store the current interval
+    window.currentRefreshInterval = seconds;
+}
+
 // Show settings view
 function showSettingsView() {
     const dashboardContent = document.querySelector('.dashboard-content');
     if (!dashboardContent) return;
     
+    // Load current settings
+    const settings = loadSettings();
+    
     dashboardContent.innerHTML = `
         <div class="section-header">
             <h3>Application Settings</h3>
             <div class="section-actions">
-                <button class="btn btn-primary">Save Changes</button>
-                <button class="btn btn-outline">Reset to Default</button>
+                <button class="btn btn-primary" onclick="handleSaveSettings()">Save Changes</button>
+                <button class="btn btn-outline" onclick="handleResetSettings()">Reset to Default</button>
             </div>
         </div>
         
@@ -876,14 +1324,15 @@ function showSettingsView() {
                 <h4>General Settings</h4>
                 <div class="setting-item">
                     <label>Application Name</label>
-                    <input type="text" value="TaskScheduler Pro" class="form-input">
+                    <input type="text" value="${settings.applicationName}" class="form-input" id="applicationName">
                 </div>
                 <div class="setting-item">
                     <label>Auto-refresh Interval</label>
-                    <select class="form-select">
-                        <option value="5">5 seconds</option>
-                        <option value="10" selected>10 seconds</option>
-                        <option value="30">30 seconds</option>
+                    <select class="form-select" id="refreshInterval">
+                        <option value="5" ${settings.refreshInterval === 5 ? 'selected' : ''}>5 seconds</option>
+                        <option value="10" ${settings.refreshInterval === 10 ? 'selected' : ''}>10 seconds</option>
+                        <option value="30" ${settings.refreshInterval === 30 ? 'selected' : ''}>30 seconds</option>
+                        <option value="60" ${settings.refreshInterval === 60 ? 'selected' : ''}>60 seconds</option>
                     </select>
                 </div>
             </div>
@@ -892,12 +1341,12 @@ function showSettingsView() {
                 <h4>Notification Settings</h4>
                 <div class="setting-item">
                     <label>
-                        <input type="checkbox" checked> Email Notifications
+                        <input type="checkbox" id="emailNotifications" ${settings.emailNotifications ? 'checked' : ''}> Email Notifications
                     </label>
                 </div>
                 <div class="setting-item">
                     <label>
-                        <input type="checkbox" checked> Task Failure Alerts
+                        <input type="checkbox" id="taskFailureAlerts" ${settings.taskFailureAlerts ? 'checked' : ''}> Task Failure Alerts
                     </label>
                 </div>
             </div>
@@ -939,7 +1388,7 @@ function initializeExecutionChart() {
                     borderColor: '#10b981',
                     backgroundColor: 'rgba(16, 185, 129, 0.1)',
                     borderWidth: 2,
-                    fill: true,
+                fill: true,
                     tension: 0.4,
                     pointRadius: 4,
                     pointHoverRadius: 6
@@ -1138,13 +1587,74 @@ function initializeInteractiveFeatures() {
 
 // Real-time updates simulation
 function initializeRealTimeUpdates() {
-    // Simulate real-time metric updates
-    setInterval(() => {
-        updateMetrics();
-    }, 30000); // Update every 30 seconds
-    
     // Add loading states
     addLoadingStates();
+    
+    // Initial data load
+    refreshDashboardData();
+}
+
+// Refresh dashboard data
+async function refreshDashboardData() {
+    try {
+        const response = await fetch('/api/dashboard-data');
+        if (!response.ok) throw new Error('Failed to fetch dashboard data');
+        
+        const data = await response.json();
+        
+        // Update metrics
+        if (data.healthCheckCount !== undefined) {
+            document.querySelector('.metric-value[data-metric="health"]').textContent = data.healthCheckCount;
+        }
+        if (data.cleanupCount !== undefined) {
+            document.querySelector('.metric-value[data-metric="cleanup"]').textContent = data.cleanupCount;
+        }
+        if (data.reportCount !== undefined) {
+            document.querySelector('.metric-value[data-metric="reports"]').textContent = data.reportCount;
+        }
+        
+        // Update execution table
+        const tbody = document.querySelector('.data-table tbody');
+        if (tbody && data.executions) {
+            tbody.innerHTML = data.executions.map(execution => `
+                <tr class="${execution.status === 'SUCCESS' ? 'success-row' : 'error-row'}">
+                    <td>
+                        <div class="task-info">
+                            <i class="fas fa-clock task-icon"></i>
+                            <span>${execution.taskName}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge badge-secondary">${execution.executionType}</span>
+                    </td>
+                    <td>
+                        <span class="status-badge ${execution.status === 'SUCCESS' ? 'success' : 'error'}">${execution.status}</span>
+                    </td>
+                    <td>${new Date(execution.executionTime).toLocaleTimeString()}</td>
+                    <td>${execution.executionDuration}ms</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-icon" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-icon" title="Rerun">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // Update charts if they exist
+        if (window.executionChart) {
+            updateCharts(data);
+        }
+        
+        console.log('Dashboard data refreshed successfully');
+    } catch (error) {
+        console.error('Error refreshing dashboard data:', error);
+    }
 }
 
 function updateMetrics() {
