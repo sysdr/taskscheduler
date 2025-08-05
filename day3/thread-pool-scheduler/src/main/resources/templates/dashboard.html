@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thread Pool Task Scheduler - Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔄 Thread Pool Task Scheduler Dashboard</h1>
+            <p>Day 3: Understanding ThreadPoolTaskScheduler and TaskExecutor</p>
+        </header>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Active Threads</h3>
+                <div class="stat-value" id="activeThreads" th:text="${threadPoolStats.activeThreads}">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Pool Size</h3>
+                <div class="stat-value" id="poolSize" th:text="${threadPoolStats.poolSize}">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Core Pool Size</h3>
+                <div class="stat-value" th:text="${threadPoolStats.corePoolSize}">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Max Pool Size</h3>
+                <div class="stat-value" th:text="${threadPoolStats.maxPoolSize}">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Queue Size</h3>
+                <div class="stat-value" id="queueSize" th:text="${threadPoolStats.queueSize}">0</div>
+            </div>
+        </div>
+        
+        <div class="charts-section">
+            <div class="chart-container">
+                <h3>Thread Pool Utilization</h3>
+                <canvas id="threadUtilizationChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Task Execution Timeline</h3>
+                <canvas id="taskTimelineChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="tasks-section">
+            <h3>📋 Scheduled Tasks Performance</h3>
+            <div class="tasks-grid">
+                <div th:each="metric : ${taskMetrics}" class="task-card">
+                    <h4 th:text="${metric.value.taskName}">Task Name</h4>
+                    <div class="task-stats">
+                        <p><strong>Executions:</strong> <span th:text="${metric.value.executionCount}">0</span></p>
+                        <p><strong>Avg Time:</strong> <span th:text="${#numbers.formatDecimal(metric.value.averageExecutionTime, 1, 2)}">0</span>ms</p>
+                        <p><strong>Last Thread:</strong> <span th:text="${metric.value.lastExecutingThread}">N/A</span></p>
+                        <p><strong>Last Duration:</strong> <span th:text="${metric.value.lastExecutionDuration}">0</span>ms</p>
+                        <p><strong>Last Execution:</strong> <span th:text="${#temporals.format(metric.value.lastExecution, 'HH:mm:ss')}">N/A</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-section">
+            <h3>📊 Performance Insights</h3>
+            <div class="insights">
+                <div class="insight-card">
+                    <h4>Thread Pool Benefits</h4>
+                    <p>Multiple threads executing tasks concurrently instead of single-threaded queuing</p>
+                </div>
+                <div class="insight-card">
+                    <h4>Performance Metrics</h4>
+                    <p>Monitor active threads vs. queue size to optimize pool configuration</p>
+                </div>
+                <div class="insight-card">
+                    <h4>Scaling Strategy</h4>
+                    <p>Adjust pool size based on task execution patterns and resource availability</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

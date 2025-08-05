@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'thread-pool-scheduler'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['thread-pool-scheduler:8080']
