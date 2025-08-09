@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  scheduler-instance-1:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=8080
+      - INSTANCE_ID=DOCKER-INSTANCE-1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  scheduler-instance-2:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8082:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=8080
+      - INSTANCE_ID=DOCKER-INSTANCE-2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  scheduler-instance-3:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8083:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker  
+      - SERVER_PORT=8080
+      - INSTANCE_ID=DOCKER-INSTANCE-3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
