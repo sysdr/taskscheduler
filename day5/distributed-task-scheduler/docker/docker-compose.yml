@@ -1,0 +1,73 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: scheduler-redis
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: scheduler-postgres
+    environment:
+      POSTGRES_DB: scheduler
+      POSTGRES_USER: scheduler
+      POSTGRES_PASSWORD: scheduler123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scheduler"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  scheduler1:
+    build: ..
+    container_name: scheduler-instance-1
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/scheduler
+      SPRING_DATASOURCE_USERNAME: scheduler
+      SPRING_DATASOURCE_PASSWORD: scheduler123
+      SPRING_DATA_REDIS_HOST: redis
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  scheduler2:
+    build: ..
+    container_name: scheduler-instance-2
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/scheduler
+      SPRING_DATASOURCE_USERNAME: scheduler
+      SPRING_DATASOURCE_PASSWORD: scheduler123
+      SPRING_DATA_REDIS_HOST: redis
+      SERVER_PORT: 8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  postgres_data:

@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  data:
+    redis:
+      host: localhost
+      port: 6370  # Different port to avoid conflicts
+
+scheduler:
+  enabled: false
+
+logging:
+  level:
+    com.scheduler: DEBUG
