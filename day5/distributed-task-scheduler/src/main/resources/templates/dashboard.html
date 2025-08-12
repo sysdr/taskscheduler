@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributed Task Scheduler - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .dashboard-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .execution-row:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container-fluid py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="dashboard-card p-4">
+                    <h1><i class="fas fa-clock me-2"></i>Distributed Task Scheduler</h1>
+                    <p class="mb-0">Instance ID: <code th:text="${instanceId}">unknown</code></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Row -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <div class="text-primary"><i class="fas fa-tasks fa-2x"></i></div>
+                    <h3 class="mt-2" th:text="${activeTasks}">0</h3>
+                    <p class="text-muted mb-0">Active Tasks</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <div class="text-success"><i class="fas fa-play fa-2x"></i></div>
+                    <h3 class="mt-2" th:text="${runningTasks}">0</h3>
+                    <p class="text-muted mb-0">Running Tasks</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <div class="text-info"><i class="fas fa-history fa-2x"></i></div>
+                    <h3 class="mt-2" th:text="${#lists.size(recentExecutions)}">0</h3>
+                    <p class="text-muted mb-0">Recent Executions</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card text-center">
+                    <div class="text-warning"><i class="fas fa-server fa-2x"></i></div>
+                    <h3 class="mt-2">1</h3>
+                    <p class="text-muted mb-0">Active Instances</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Definitions -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-list me-2"></i>Task Definitions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Description</th>
+                                        <th>Cron Expression</th>
+                                        <th>Status</th>
+                                        <th>Last Executed</th>
+                                        <th>Next Execution</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="task : ${tasks}">
+                                        <td><strong th:text="${task.name}">Task Name</strong></td>
+                                        <td th:text="${task.description}">Description</td>
+                                        <td><code th:text="${task.cronExpression}">0 0 * * * ?</code></td>
+                                        <td>
+                                            <span class="badge status-badge" 
+                                                  th:classappend="${task.status.name() == 'ACTIVE'} ? 'bg-success' : 
+                                                                 (${task.status.name() == 'RUNNING'} ? 'bg-primary' : 
+                                                                 (${task.status.name() == 'FAILED'} ? 'bg-danger' : 'bg-secondary'))"
+                                                  th:text="${task.status.name()}">Status</span>
+                                        </td>
+                                        <td th:text="${task.lastExecutedAt != null} ? ${#temporals.format(task.lastExecutedAt, 'yyyy-MM-dd HH:mm:ss')} : 'Never'">Never</td>
+                                        <td th:text="${task.nextExecutionAt != null} ? ${#temporals.format(task.nextExecutionAt, 'yyyy-MM-dd HH:mm:ss')} : 'Not scheduled'">Not scheduled</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Executions -->
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-history me-2"></i>Recent Executions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Task Name</th>
+                                        <th>Instance</th>
+                                        <th>Status</th>
+                                        <th>Started At</th>
+                                        <th>Duration</th>
+                                        <th>Error</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="execution : ${recentExecutions}" class="execution-row">
+                                        <td th:text="${execution.taskName}">Task Name</td>
+                                        <td><small th:text="${execution.instanceId}">Instance ID</small></td>
+                                        <td>
+                                            <span class="badge badge-sm"
+                                                  th:classappend="${execution.status.name() == 'COMPLETED'} ? 'bg-success' : 
+                                                                 (${execution.status.name() == 'RUNNING'} ? 'bg-primary' : 
+                                                                 (${execution.status.name() == 'FAILED'} ? 'bg-danger' : 'bg-secondary'))"
+                                                  th:text="${execution.status.name()}">Status</span>
+                                        </td>
+                                        <td th:text="${#temporals.format(execution.startedAt, 'HH:mm:ss')}">Time</td>
+                                        <td th:text="${execution.executionTimeMs != null} ? ${execution.executionTimeMs} + 'ms' : '-'">Duration</td>
+                                        <td>
+                                            <small class="text-danger" th:text="${execution.errorMessage ?: '-'}">Error</small>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-refresh every 30 seconds
+        setInterval(function() {
+            window.location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>
