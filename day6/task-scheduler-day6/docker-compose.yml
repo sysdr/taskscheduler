@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: task-scheduler-postgres
+    environment:
+      POSTGRES_DB: taskscheduler
+      POSTGRES_USER: taskuser
+      POSTGRES_PASSWORD: taskpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - task-scheduler-network
+
+  adminer:
+    image: adminer
+    container_name: task-scheduler-adminer
+    ports:
+      - "8081:8080"
+    networks:
+      - task-scheduler-network
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+
+networks:
+  task-scheduler-network:
+    driver: bridge
