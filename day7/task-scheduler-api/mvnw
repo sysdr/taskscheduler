@@ -1,0 +1,3 @@
+#!/bin/bash
+# Maven wrapper script
+exec mvn "$@"
