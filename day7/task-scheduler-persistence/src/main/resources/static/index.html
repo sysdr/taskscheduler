@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.1em; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-number { font-size: 2.5em; font-weight: bold; margin-bottom: 5px; }
+        .stat-label { color: #666; font-size: 0.9em; text-transform: uppercase; }
+        .active { color: #4CAF50; }
+        .inactive { color: #ff9800; }
+        .paused { color: #2196F3; }
+        .error { color: #f44336; }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4CAF50;
+        }
+        .task-list {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .task-item {
+            background: white;
+            margin-bottom: 15px;
+            padding: 20px;
+            border-radius: 6px;
+            border-left: 4px solid #4CAF50;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .task-name { font-weight: bold; color: #333; margin-bottom: 5px; }
+        .task-details { color: #666; font-size: 0.9em; }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+        .status-active { background: #e8f5e8; color: #4CAF50; }
+        .status-inactive { background: #fff3e0; color: #ff9800; }
+        .status-paused { background: #e3f2fd; color: #2196F3; }
+        .status-error { background: #ffebee; color: #f44336; }
+        .loading { text-align: center; padding: 40px; color: #666; }
+        .refresh-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-bottom: 20px;
+            transition: background 0.2s;
+        }
+        .refresh-btn:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Task Scheduler Dashboard</h1>
+            <p>Day 7: Task Persistence Layer - Real-time Task Management</p>
+        </div>
+        
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-number active" id="activeCount">-</div>
+                <div class="stat-label">Active Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number inactive" id="inactiveCount">-</div>
+                <div class="stat-label">Inactive Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number paused" id="pausedCount">-</div>
+                <div class="stat-label">Paused Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number error" id="errorCount">-</div>
+                <div class="stat-label">Error Tasks</div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>Task Definitions</h2>
+                <button class="refresh-btn" onclick="loadData()">Refresh Data</button>
+                <div class="task-list" id="taskList">
+                    <div class="loading">Loading tasks...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/tasks/stats');
+                const stats = await response.json();
+                
+                document.getElementById('activeCount').textContent = stats.active || 0;
+                document.getElementById('inactiveCount').textContent = stats.inactive || 0;
+                document.getElementById('pausedCount').textContent = stats.paused || 0;
+                document.getElementById('errorCount').textContent = stats.error || 0;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function loadTasks() {
+            try {
+                const response = await fetch('/api/tasks?size=20');
+                const data = await response.json();
+                const tasks = data.content || [];
+                
+                const taskList = document.getElementById('taskList');
+                
+                if (tasks.length === 0) {
+                    taskList.innerHTML = '<div class="loading">No tasks found</div>';
+                    return;
+                }
+                
+                taskList.innerHTML = tasks.map(task => `
+                    <div class="task-item">
+                        <div class="task-name">${task.name}</div>
+                        <div class="task-details">
+                            <strong>Type:</strong> ${task.type} | 
+                            <strong>Schedule:</strong> ${task.scheduleExpression} | 
+                            <strong>Enabled:</strong> ${task.enabled ? 'Yes' : 'No'}
+                        </div>
+                        ${task.description ? `<div class="task-details"><strong>Description:</strong> ${task.description}</div>` : ''}
+                        <span class="status-badge status-${task.status.toLowerCase()}">${task.status}</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+                document.getElementById('taskList').innerHTML = 
+                    '<div class="loading">Error loading tasks. Please check if the server is running.</div>';
+            }
+        }
+
+        async function loadData() {
+            await Promise.all([loadStats(), loadTasks()]);
+        }
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadData);
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadData, 30000);
+    </script>
+</body>
+</html>
