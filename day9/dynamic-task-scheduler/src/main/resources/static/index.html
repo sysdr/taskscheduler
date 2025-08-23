@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Task Scheduler Dashboard</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🚀 Dynamic Task Scheduler</h1>
+            <p>Day 9: Database-Driven Task Orchestration</p>
+            <div class="status-bar">
+                <span id="activeTasksCount">Active: 0</span>
+                <span id="totalTasksCount">Total: 0</span>
+                <button id="refreshBtn" class="btn btn-secondary">🔄 Refresh</button>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Task Creation Panel -->
+            <section class="panel">
+                <h2>📝 Create New Task</h2>
+                <form id="taskForm">
+                    <div class="form-group">
+                        <label for="taskName">Task Name:</label>
+                        <input type="text" id="taskName" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <textarea id="description" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="cronExpression">Cron Expression:</label>
+                        <input type="text" id="cronExpression" placeholder="0 */5 * * * *" required>
+                        <small>Examples: "0 */5 * * * *" (every 5 min), "0 0 9 * * MON-FRI" (weekdays 9am)</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskType">Task Type:</label>
+                        <select id="taskType" required>
+                            <option value="LOG_MESSAGE">Log Message</option>
+                            <option value="EMAIL_NOTIFICATION">Email Notification</option>
+                            <option value="DATA_CLEANUP">Data Cleanup</option>
+                            <option value="REPORT_GENERATION">Report Generation</option>
+                            <option value="SYSTEM_HEALTH_CHECK">System Health Check</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="taskData">Task Data (Optional):</label>
+                        <textarea id="taskData" placeholder="Additional task parameters..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="status">Initial Status:</label>
+                        <select id="status">
+                            <option value="ACTIVE">Active (Start Immediately)</option>
+                            <option value="INACTIVE">Inactive</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">✨ Create Task</button>
+                </form>
+            </section>
+
+            <!-- Task List Panel -->
+            <section class="panel">
+                <h2>📋 Task Management</h2>
+                <div class="task-controls">
+                    <button id="reloadSchedulerBtn" class="btn btn-warning">🔄 Reload Scheduler</button>
+                </div>
+                <div id="tasksList" class="tasks-list">
+                    <!-- Tasks will be loaded here -->
+                </div>
+            </section>
+        </div>
+
+        <!-- System Status Panel -->
+        <section class="panel status-panel">
+            <h2>📊 System Status</h2>
+            <div id="systemStatus" class="status-grid">
+                <!-- Status info will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Live Logs Panel -->
+        <section class="panel logs-panel">
+            <h2>📄 Live Activity Log</h2>
+            <div class="log-controls">
+                <button id="clearLogsBtn" class="btn btn-secondary">🗑️ Clear Logs</button>
+            </div>
+            <div id="activityLog" class="activity-log">
+                <!-- Live logs will appear here -->
+            </div>
+        </section>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
