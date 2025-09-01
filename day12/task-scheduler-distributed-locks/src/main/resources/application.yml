@@ -1,0 +1,92 @@
+spring:
+  application:
+    name: task-scheduler-distributed-locks
+  
+  # Database Configuration (H2 for demo, PostgreSQL for production)
+  datasource:
+    url: jdbc:h2:mem:taskdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  
+  # H2 Console for debugging
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  # Virtual Threads
+  threads:
+    virtual:
+      enabled: true
+
+# Server Configuration
+server:
+  port: 8080
+
+# Management/Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,locks
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Custom Application Properties
+app:
+  distributed-locks:
+    default-timeout-seconds: 30
+    max-wait-seconds: 10
+    cleanup-interval-minutes: 5
+  
+  task-execution:
+    pool-size: 10
+    queue-capacity: 100
+
+logging:
+  level:
+    com.taskscheduler: DEBUG
+    org.springframework.transaction: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+---
+spring:
+  config:
+    activate:
+      on-profile: production
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/taskscheduler
+    driver-class-name: org.postgresql.Driver
+    username: taskuser
+    password: taskpass
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false

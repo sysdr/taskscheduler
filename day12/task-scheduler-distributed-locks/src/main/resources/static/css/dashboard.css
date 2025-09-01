@@ -1,0 +1,42 @@
+/* Custom dashboard styles */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.success-message {
+    @apply bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded;
+}
+
+.error-message {
+    @apply bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded;
+}
+
+.info-message {
+    @apply bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded;
+}
+
+.pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: .5;
+    }
+}
+
+.task-running {
+    @apply bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded;
+}
+
+.task-completed {
+    @apply bg-green-50 border-l-4 border-green-400 p-3 rounded;
+}
+
+.task-failed {
+    @apply bg-red-50 border-l-4 border-red-400 p-3 rounded;
+}

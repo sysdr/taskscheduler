@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/taskscheduler
+    driver-class-name: org.postgresql.Driver
+    username: taskuser
+    password: taskpass
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
