@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler - Redis Distributed Locks</title>
+    <link href="/css/dashboard.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 Task Scheduler Dashboard</h1>
+        <div class="executor-info">
+            <span class="executor-id" th:text="'Executor: ' + ${executorId}">Executor: executor-abc123</span>
+            <div class="status-indicator online"></div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" th:text="${stats.totalTasks}">0</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+            <div class="stat-card pending">
+                <div class="stat-value" th:text="${stats.pendingTasks}">0</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card running">
+                <div class="stat-value" th:text="${stats.runningTasks}">0</div>
+                <div class="stat-label">Running</div>
+            </div>
+            <div class="stat-card completed">
+                <div class="stat-value" th:text="${stats.completedTasks}">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+        
+        <div class="action-panel">
+            <h3>Create New Task</h3>
+            <div class="create-task-form">
+                <input type="text" id="taskName" placeholder="Enter task name..." />
+                <button onclick="createTask()">Create Task</button>
+                <button onclick="createBulkTasks()">Create 10 Tasks</button>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="tasksChart" width="400" height="200"></canvas>
+        </div>
+        
+        <div class="tasks-container">
+            <h3>Recent Tasks</h3>
+            <div id="tasksList" class="tasks-list">
+                <!-- Tasks will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

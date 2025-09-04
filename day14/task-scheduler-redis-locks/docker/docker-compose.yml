@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: task-scheduler-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    
+  app:
+    build: ..
+    container_name: task-scheduler-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    environment:
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+    volumes:
+      - ./logs:/app/logs
+
+volumes:
+  redis_data:

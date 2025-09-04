@@ -1,0 +1,43 @@
+server:
+  port: 8080
+
+spring:
+  web:
+    resources:
+      static-locations: classpath:/static/
+      add-mappings: true
+  datasource:
+    url: jdbc:h2:mem:taskdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  
+  redis:
+    host: 172.18.0.2
+    port: 6379
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 10
+        max-idle: 10
+        min-idle: 1
+
+logging:
+  level:
+    com.taskscheduler: INFO
+    org.springframework.data.redis: DEBUG
+    org.springframework.boot.autoconfigure.data.redis: DEBUG
+    io.lettuce.core: DEBUG
