@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  redis-1:
+    image: redis:7-alpine
+    container_name: redis-redlock-1
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis1_data:/data
+
+  redis-2:
+    image: redis:7-alpine
+    container_name: redis-redlock-2
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis2_data:/data
+
+  redis-3:
+    image: redis:7-alpine
+    container_name: redis-redlock-3
+    ports:
+      - "6381:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis3_data:/data
+
+volumes:
+  redis1_data:
+  redis2_data:
+  redis3_data:

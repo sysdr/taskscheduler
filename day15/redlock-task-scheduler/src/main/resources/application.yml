@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: redlock-task-scheduler
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1
+          max-idle: 8
+          min-idle: 0
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+
+redlock:
+  instances:
+    - host: localhost
+      port: 6379
+    - host: localhost
+      port: 6380
+    - host: localhost
+      port: 6381
+  retry-count: 3
+  retry-delay: 200
+  clock-drift-factor: 0.01
