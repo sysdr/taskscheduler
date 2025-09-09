@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: leader-election-scheduler
+  
+  datasource:
+    url: jdbc:h2:mem:scheduler;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+server:
+  port: 8080
+
+scheduler:
+  leader:
+    lease-duration: 30000  # 30 seconds
+    heartbeat-interval: 10000  # 10 seconds
+    election-timeout: 5000   # 5 seconds
+  instance:
+    id: ${HOSTNAME:localhost}-${server.port}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info,leader
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.scheduler: DEBUG
+    org.springframework.scheduling: INFO

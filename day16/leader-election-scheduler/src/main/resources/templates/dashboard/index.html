@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leader Election Scheduler Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            color: #5a67d8;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        
+        .status-value {
+            font-weight: bold;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        
+        .leader { background: #c6f6d5; color: #22543d; }
+        .follower { background: #feebc8; color: #c05621; }
+        .candidate { background: #bee3f8; color: #2a69ac; }
+        .failed { background: #fed7d7; color: #c53030; }
+        
+        .logs-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .log-entry {
+            padding: 8px;
+            margin: 5px 0;
+            border-left: 4px solid #5a67d8;
+            background: #f7fafc;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .actions {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            background: #5a67d8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+            margin: 0 10px;
+        }
+        
+        .btn:hover {
+            background: #4c51bf;
+        }
+        
+        .btn-danger {
+            background: #e53e3e;
+        }
+        
+        .btn-danger:hover {
+            background: #c53030;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Leader Election Scheduler</h1>
+            <p>Real-time monitoring dashboard for distributed task scheduling</p>
+        </div>
+        
+        <div class="cards-container">
+            <div class="card">
+                <h3>🏆 Leadership Status</h3>
+                <div class="status-item">
+                    <span class="status-label">Instance ID:</span>
+                    <span class="status-value" id="instanceId">Loading...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Current State:</span>
+                    <span class="status-value" id="currentState">Loading...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Is Leader:</span>
+                    <span class="status-value" id="isLeader">Loading...</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>📊 Task Execution</h3>
+                <div class="status-item">
+                    <span class="status-label">Tasks Completed:</span>
+                    <span class="status-value" id="tasksCompleted">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Active Leader:</span>
+                    <span class="status-value" id="activeLeader">Unknown</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Lease Expires:</span>
+                    <span class="status-value" id="leaseEnd">N/A</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>⚡ System Health</h3>
+                <div class="status-item">
+                    <span class="status-label">Last Update:</span>
+                    <span class="status-value" id="lastUpdate">Never</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Auto Refresh:</span>
+                    <span class="status-value leader" id="autoRefresh">ON</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Connection:</span>
+                    <span class="status-value leader" id="connectionStatus">Connected</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <button class="btn" onclick="refreshData()">🔄 Refresh Now</button>
+            <button class="btn btn-danger" onclick="releaseLeadership()">🚫 Release Leadership</button>
+        </div>
+        
+        <div class="logs-container">
+            <h3 style="margin-bottom: 15px; color: #5a67d8;">📝 Activity Logs</h3>
+            <div id="logs"></div>
+        </div>
+    </div>
+
+    <script>
+        let autoRefreshInterval;
+        
+        function addLog(message) {
+            const logs = document.getElementById('logs');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logs.insertBefore(entry, logs.firstChild);
+            
+            // Keep only last 20 entries
+            while (logs.children.length > 20) {
+                logs.removeChild(logs.lastChild);
+            }
+        }
+        
+        function updateStatusValue(elementId, value, className = '') {
+            const element = document.getElementById(elementId);
+            element.textContent = value;
+            element.className = `status-value ${className}`;
+        }
+        
+        async function refreshData() {
+            try {
+                // Fetch leadership status
+                const leaderResponse = await fetch('/api/leadership/status');
+                const leaderData = await leaderResponse.json();
+                
+                // Fetch monitoring status
+                const monitoringResponse = await fetch('/api/monitoring/status');
+                const monitoringData = await monitoringResponse.json();
+                
+                // Update UI
+                updateStatusValue('instanceId', leaderData.instanceId);
+                updateStatusValue('currentState', leaderData.state, leaderData.state.toLowerCase());
+                updateStatusValue('isLeader', leaderData.isLeader ? 'YES' : 'NO', leaderData.isLeader ? 'leader' : 'follower');
+                updateStatusValue('tasksCompleted', monitoringData.tasksCompleted);
+                
+                if (leaderData.currentLeadership) {
+                    updateStatusValue('activeLeader', leaderData.currentLeadership.leaderId);
+                    updateStatusValue('leaseEnd', new Date(leaderData.currentLeadership.leaseEnd).toLocaleTimeString());
+                }
+                
+                updateStatusValue('lastUpdate', new Date().toLocaleTimeString());
+                updateStatusValue('connectionStatus', 'Connected', 'leader');
+                
+                // Add log entry for significant changes
+                if (leaderData.isLeader && !window.wasLeader) {
+                    addLog(`🎯 Instance ${leaderData.instanceId} became LEADER`);
+                    window.wasLeader = true;
+                } else if (!leaderData.isLeader && window.wasLeader) {
+                    addLog(`📤 Instance ${leaderData.instanceId} lost leadership`);
+                    window.wasLeader = false;
+                }
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                updateStatusValue('connectionStatus', 'Error', 'failed');
+                addLog(`❌ Connection error: ${error.message}`);
+            }
+        }
+        
+        async function releaseLeadership() {
+            if (confirm('Are you sure you want to release leadership?')) {
+                try {
+                    await fetch('/api/leadership/release', { method: 'POST' });
+                    addLog('🚫 Leadership release requested');
+                    refreshData();
+                } catch (error) {
+                    addLog(`❌ Error releasing leadership: ${error.message}`);
+                }
+            }
+        }
+        
+        // Initialize
+        refreshData();
+        autoRefreshInterval = setInterval(refreshData, 5000);
+        addLog('🚀 Dashboard initialized');
+    </script>
+</body>
+</html>
