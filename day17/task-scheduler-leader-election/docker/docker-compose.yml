@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: task-scheduler-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: task_scheduler
+      MYSQL_USER: scheduler
+      MYSQL_PASSWORD: schedulerpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - task-scheduler-network
+
+  app1:
+    build: ..
+    container_name: task-scheduler-app1
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/task_scheduler
+      - SERVER_PORT=8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    networks:
+      - task-scheduler-network
+
+  app2:
+    build: ..
+    container_name: task-scheduler-app2
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/task_scheduler
+      - SERVER_PORT=8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mysql
+    networks:
+      - task-scheduler-network
+
+networks:
+  task-scheduler-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
