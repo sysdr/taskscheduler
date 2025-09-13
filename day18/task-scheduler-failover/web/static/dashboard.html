@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler - Leader Failover Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-crown"></i> Task Scheduler - Leader Failover</h1>
+            <div class="node-info">
+                <span class="node-id" id="node-id">Node: Loading...</span>
+                <span class="leader-badge" id="leader-badge">STATUS</span>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <div class="card leadership-status">
+                <h2><i class="fas fa-vote-yea"></i> Leadership Status</h2>
+                <div id="leadership-info">
+                    <div class="status-item">
+                        <label>Current Leader:</label>
+                        <span id="current-leader">Loading...</span>
+                    </div>
+                    <div class="status-item">
+                        <label>Generation:</label>
+                        <span id="leader-generation">-</span>
+                    </div>
+                    <div class="status-item">
+                        <label>Lease Expires:</label>
+                        <span id="lease-expiry">-</span>
+                    </div>
+                </div>
+                <button id="trigger-election" class="btn btn-warning">
+                    <i class="fas fa-bolt"></i> Trigger Election
+                </button>
+            </div>
+
+            <div class="card node-health">
+                <h2><i class="fas fa-heartbeat"></i> Cluster Health</h2>
+                <div id="health-summary">
+                    <div class="health-stat">
+                        <span class="health-count" id="healthy-count">0</span>
+                        <label>Healthy Nodes</label>
+                    </div>
+                    <div class="health-stat">
+                        <span class="health-count" id="total-count">0</span>
+                        <label>Total Nodes</label>
+                    </div>
+                </div>
+                <div id="nodes-list"></div>
+            </div>
+
+            <div class="card task-activity">
+                <h2><i class="fas fa-tasks"></i> Task Activity</h2>
+                <div id="task-log">
+                    <p class="log-item">System initialized - monitoring for task activity...</p>
+                </div>
+            </div>
+
+            <div class="card system-metrics">
+                <h2><i class="fas fa-chart-line"></i> System Metrics</h2>
+                <div class="metrics-grid">
+                    <div class="metric">
+                        <label>CPU Usage</label>
+                        <div class="metric-bar">
+                            <div class="metric-fill" id="cpu-bar" style="width: 0%"></div>
+                        </div>
+                        <span id="cpu-value">0%</span>
+                    </div>
+                    <div class="metric">
+                        <label>Memory Usage</label>
+                        <div class="metric-bar">
+                            <div class="metric-fill" id="memory-bar" style="width: 0%"></div>
+                        </div>
+                        <span id="memory-value">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

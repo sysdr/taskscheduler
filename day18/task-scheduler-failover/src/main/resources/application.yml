@@ -1,0 +1,47 @@
+server:
+  port: 8080
+  
+spring:
+  application:
+    name: task-scheduler-failover
+  datasource:
+    url: jdbc:h2:mem:scheduler;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    cache: false
+    check-template-location: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+scheduler:
+  leader:
+    heartbeat-interval: 5000
+    lease-duration: 15000
+    election-timeout: 10000
+  node:
+    id: ${HOSTNAME:node-1}
+    
+logging:
+  level:
+    com.scheduler: DEBUG
+    org.springframework.web: INFO
