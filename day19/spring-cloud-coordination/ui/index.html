@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Cloud Coordination Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            margin: 10px;
+        }
+        
+        .leader { background: linear-gradient(45deg, #4CAF50, #8BC34A); }
+        .follower { background: linear-gradient(45deg, #FF9800, #FFC107); }
+        
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .task-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .task-table th, .task-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .task-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-running { background: #d1ecf1; color: #0c5460; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-failed { background: #f8d7da; color: #721c24; }
+        
+        .auto-refresh {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .metric-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Spring Cloud Coordination Dashboard</h1>
+            <div id="leaderStatus" class="status-indicator">
+                <div class="loading"></div> Checking Status...
+            </div>
+            <div style="color: rgba(255,255,255,0.8); margin-top: 10px;">
+                Distributed Task Scheduler with Leader Election
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>📊 System Metrics</h3>
+            <div class="metrics" id="metrics">
+                <div class="metric-box">
+                    <div class="metric-value" id="totalTasks">-</div>
+                    <div class="metric-label">Total Tasks</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value" id="pendingTasks">-</div>
+                    <div class="metric-label">Pending</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value" id="runningTasks">-</div>
+                    <div class="metric-label">Running</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-value" id="completedTasks">-</div>
+                    <div class="metric-label">Completed</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>➕ Schedule New Task</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="taskType">Task Type</label>
+                    <select id="taskType">
+                        <option value="EMAIL">Email Task</option>
+                        <option value="REPORT">Report Generation</option>
+                        <option value="BATCH">Batch Processing</option>
+                        <option value="DEFAULT">Default Task</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="payload">Task Payload</label>
+                    <input type="text" id="payload" placeholder="Enter task description">
+                </div>
+                <div class="form-group">
+                    <label for="scheduleDelay">Schedule Delay (seconds)</label>
+                    <input type="number" id="scheduleDelay" value="10" min="1">
+                </div>
+            </div>
+            <button class="btn" onclick="scheduleTask()">Schedule Task</button>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>📋 Task List</h3>
+                <div class="auto-refresh">
+                    <input type="checkbox" id="autoRefresh" checked>
+                    <label for="autoRefresh">Auto Refresh</label>
+                    <button class="btn" onclick="loadTasks()" style="padding: 8px 16px; font-size: 14px;">
+                        🔄 Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th>Task ID</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Payload</th>
+                        <th>Scheduled Time</th>
+                        <th>Executed Time</th>
+                        <th>Executor</th>
+                    </tr>
+                </thead>
+                <tbody id="taskTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 20px;">
+                            <div class="loading"></div> Loading tasks...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        
+        // Load system status
+        async function loadStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/tasks/status`);
+                const status = await response.json();
+                
+                const statusElement = document.getElementById('leaderStatus');
+                if (status.isLeader) {
+                    statusElement.innerHTML = '👑 LEADER - Processing Tasks';
+                    statusElement.className = 'status-indicator leader';
+                } else {
+                    statusElement.innerHTML = '👥 FOLLOWER - Standing By';
+                    statusElement.className = 'status-indicator follower';
+                }
+            } catch (error) {
+                console.error('Error loading status:', error);
+                document.getElementById('leaderStatus').innerHTML = '❌ Connection Error';
+            }
+        }
+        
+        // Load tasks
+        async function loadTasks() {
+            try {
+                const response = await fetch(`${API_BASE}/tasks`);
+                const tasks = await response.json();
+                
+                updateMetrics(tasks);
+                displayTasks(tasks);
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+                document.getElementById('taskTableBody').innerHTML = 
+                    '<tr><td colspan="7" style="text-align: center; color: red;">Error loading tasks</td></tr>';
+            }
+        }
+        
+        // Update metrics
+        function updateMetrics(tasks) {
+            const total = tasks.length;
+            const pending = tasks.filter(t => t.status === 'PENDING').length;
+            const running = tasks.filter(t => t.status === 'RUNNING').length;
+            const completed = tasks.filter(t => t.status === 'COMPLETED').length;
+            
+            document.getElementById('totalTasks').textContent = total;
+            document.getElementById('pendingTasks').textContent = pending;
+            document.getElementById('runningTasks').textContent = running;
+            document.getElementById('completedTasks').textContent = completed;
+        }
+        
+        // Display tasks
+        function displayTasks(tasks) {
+            const tbody = document.getElementById('taskTableBody');
+            
+            if (tasks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No tasks found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = tasks
+                .sort((a, b) => new Date(b.scheduledTime) - new Date(a.scheduledTime))
+                .map(task => `
+                    <tr>
+                        <td>${task.taskId}</td>
+                        <td>${task.taskType}</td>
+                        <td><span class="status-badge status-${task.status.toLowerCase()}">${task.status}</span></td>
+                        <td>${task.payload || '-'}</td>
+                        <td>${formatDateTime(task.scheduledTime)}</td>
+                        <td>${task.executedTime ? formatDateTime(task.executedTime) : '-'}</td>
+                        <td>${task.executorInstance || '-'}</td>
+                    </tr>
+                `).join('');
+        }
+        
+        // Schedule new task
+        async function scheduleTask() {
+            const taskType = document.getElementById('taskType').value;
+            const payload = document.getElementById('payload').value;
+            const delay = parseInt(document.getElementById('scheduleDelay').value);
+            
+            if (!payload) {
+                alert('Please enter a task payload');
+                return;
+            }
+            
+            const scheduledTime = new Date(Date.now() + (delay * 1000)).toISOString();
+            
+            try {
+                const response = await fetch(`${API_BASE}/tasks`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        taskType,
+                        payload,
+                        scheduledTime
+                    })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('payload').value = '';
+                    loadTasks();
+                    alert('Task scheduled successfully!');
+                } else {
+                    alert('Error scheduling task');
+                }
+            } catch (error) {
+                console.error('Error scheduling task:', error);
+                alert('Error scheduling task');
+            }
+        }
+        
+        // Format date time
+        function formatDateTime(dateTime) {
+            if (!dateTime) return '-';
+            return new Date(dateTime).toLocaleString();
+        }
+        
+        // Initialize
+        loadStatus();
+        loadTasks();
+        
+        // Auto refresh
+        setInterval(() => {
+            loadStatus();
+            if (document.getElementById('autoRefresh').checked) {
+                loadTasks();
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

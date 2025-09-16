@@ -1,0 +1,64 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: spring-cloud-coordination
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: jdbc:h2:mem:coordination;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+coordination:
+  lock:
+    default-timeout: 30s
+    providers:
+      jdbc:
+        enabled: true
+        table-prefix: "COORDINATION_"
+      redis:
+        enabled: true
+        key-prefix: "coordination:locks:"
+  leader:
+    election:
+      enabled: true
+      candidate-id: ${random.uuid}
+      role: task-scheduler
+      namespace: coordination
+
+logging:
+  level:
+    com.taskscheduler: DEBUG
+    org.springframework.integration: INFO
