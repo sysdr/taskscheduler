@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idempotent Task Scheduler Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="gradient-bg text-white shadow-lg">
+            <div class="container mx-auto px-6 py-4">
+                <h1 class="text-3xl font-bold">Idempotent Task Scheduler</h1>
+                <p class="mt-2 opacity-90">Monitor task executions with guaranteed idempotency</p>
+            </div>
+        </header>
+
+        <!-- Stats Cards -->
+        <div class="container mx-auto px-6 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="card bg-white rounded-lg p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-500 text-white mr-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Total Executions</p>
+                            <p class="text-2xl font-semibold" th:text="${totalExecutions}">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-white rounded-lg p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-500 text-white mr-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Completed</p>
+                            <p class="text-2xl font-semibold text-green-600" th:text="${completedExecutions}">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-white rounded-lg p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-red-500 text-white mr-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Failed</p>
+                            <p class="text-2xl font-semibold text-red-600" th:text="${failedExecutions}">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-white rounded-lg p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-yellow-500 text-white mr-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Running</p>
+                            <p class="text-2xl font-semibold text-yellow-600" th:text="${runningExecutions}">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Section -->
+            <div class="card bg-white rounded-lg p-6 mb-8">
+                <h2 class="text-xl font-bold mb-4">Test Idempotent Operations</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="font-semibold mb-2">Welcome Email Test</h3>
+                        <div class="flex gap-2">
+                            <input type="email" id="welcomeEmail" placeholder="user@example.com" 
+                                   class="flex-1 border rounded px-3 py-2">
+                            <input type="text" id="welcomeName" placeholder="User Name" 
+                                   class="flex-1 border rounded px-3 py-2">
+                            <button onclick="testWelcomeEmail()" 
+                                    class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                Send
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold mb-2">Password Reset Test</h3>
+                        <div class="flex gap-2">
+                            <input type="email" id="resetEmail" placeholder="user@example.com" 
+                                   class="flex-1 border rounded px-3 py-2">
+                            <button onclick="testPasswordReset()" 
+                                    class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="testResult" class="mt-4 p-3 rounded hidden"></div>
+            </div>
+
+            <!-- Executions Table -->
+            <div class="card bg-white rounded-lg overflow-hidden">
+                <div class="px-6 py-4 border-b">
+                    <h2 class="text-xl font-bold">Recent Task Executions</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Execution ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Task Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Retries</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Result</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr th:each="execution : ${executions}">
+                                <td class="px-6 py-4 text-sm font-mono" th:text="${#strings.substring(execution.executionId, 0, 12) + '...'}">abc123...</td>
+                                <td class="px-6 py-4 text-sm font-medium" th:text="${execution.taskName}">Task Name</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full" th:text="${execution.status}">Status</span>
+                                </td>
+                                <td class="px-6 py-4 text-sm" th:text="${execution.retryCount}">0</td>
+                                <td class="px-6 py-4 text-sm text-gray-500" th:text="${#temporals.format(execution.createdAt, 'MM/dd HH:mm:ss')}">Time</td>
+                                <td class="px-6 py-4 text-sm text-gray-500" th:text="${execution.result != null ? #strings.abbreviate(execution.result, 30) : '-'}">Result</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function testWelcomeEmail() {
+            const email = document.getElementById('welcomeEmail').value;
+            const name = document.getElementById('welcomeName').value;
+            
+            if (!email || !name) {
+                showResult('Please fill in both email and name', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/test-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`
+                });
+                
+                const result = await response.text();
+                showResult(result, response.ok ? 'success' : 'error');
+                
+                if (response.ok) {
+                    setTimeout(() => location.reload(), 2000);
+                }
+            } catch (error) {
+                showResult('Error: ' + error.message, 'error');
+            }
+        }
+
+        async function testPasswordReset() {
+            const email = document.getElementById('resetEmail').value;
+            
+            if (!email) {
+                showResult('Please enter an email address', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/test-reset', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `email=${encodeURIComponent(email)}`
+                });
+                
+                const result = await response.text();
+                showResult(result, response.ok ? 'success' : 'error');
+                
+                if (response.ok) {
+                    setTimeout(() => location.reload(), 2000);
+                }
+            } catch (error) {
+                showResult('Error: ' + error.message, 'error');
+            }
+        }
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.className = `mt-4 p-3 rounded ${type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+            resultDiv.textContent = message;
+            resultDiv.classList.remove('hidden');
+            
+            setTimeout(() => {
+                resultDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Auto-refresh stats every 30 seconds
+        setInterval(async () => {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                // Update stats without full page reload if needed
+            } catch (error) {
+                console.error('Failed to update stats:', error);
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
