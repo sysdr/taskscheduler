@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Execution Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-tasks text-blue-600"></i>
+                Task Execution Dashboard
+            </h1>
+            <p class="text-gray-600">Real-time monitoring of task executions - Day 21 Implementation</p>
+        </div>
+        
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8" id="stats-cards">
+            <!-- Cards will be populated by JavaScript -->
+        </div>
+        
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Status Distribution Chart -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-chart-pie text-green-600"></i>
+                    Status Distribution
+                </h3>
+                <canvas id="statusChart" width="400" height="300"></canvas>
+            </div>
+            
+            <!-- Execution Timeline -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-chart-line text-purple-600"></i>
+                    Recent Activity
+                </h3>
+                <canvas id="timelineChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+        
+        <!-- Tables Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Failed Tasks -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-600"></i>
+                    Recent Failed Tasks
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Task</th>
+                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Error</th>
+                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="failed-tasks-table">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Longest Running Tasks -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-clock text-orange-600"></i>
+                    Longest Running Tasks
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Task</th>
+                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Duration</th>
+                                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="longest-tasks-table">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="mt-8 text-center text-gray-500 text-sm">
+            <p>Task Execution Tracker - Ultra-scalable System Design Implementation</p>
+            <p>Last updated: <span id="last-updated"></span></p>
+        </div>
+    </div>
+    
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
