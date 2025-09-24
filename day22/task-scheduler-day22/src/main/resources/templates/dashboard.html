@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Sidebar -->
+    <div class="flex">
+        <div class="w-64 bg-white shadow-xl min-h-screen">
+            <div class="p-6 border-b border-gray-200">
+                <h1 class="text-xl font-bold text-gray-800">
+                    <i class="fas fa-tasks text-blue-600 mr-2"></i>
+                    Task Scheduler
+                </h1>
+                <p class="text-sm text-gray-500 mt-1">Day 22 Implementation</p>
+            </div>
+            
+            <nav class="mt-6">
+                <div class="px-6 py-3">
+                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Navigation</h3>
+                </div>
+                <a href="#overview" class="nav-link active flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-chart-pie mr-3"></i>
+                    Overview
+                </a>
+                <a href="#tasks" class="nav-link flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-list-check mr-3"></i>
+                    Task Management
+                </a>
+                <a href="#analytics" class="nav-link flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-chart-line mr-3"></i>
+                    Analytics
+                </a>
+                <a href="#system" class="nav-link flex items-center px-6 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-cog mr-3"></i>
+                    System Health
+                </a>
+            </nav>
+            
+            <div class="absolute bottom-0 w-64 p-6 border-t border-gray-200">
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
+                    <span class="text-sm text-gray-600">System Online</span>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">Last updated: <span id="lastUpdate">--</span></div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-8">
+            <!-- Overview Section -->
+            <div id="overview-section" class="dashboard-section">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard Overview</h2>
+                    <p class="text-gray-600">Real-time task execution monitoring and management</p>
+                </div>
+
+                <!-- Enhanced Statistics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-500 mb-1">Total Tasks</h3>
+                                <p class="text-3xl font-bold text-gray-800" th:text="${totalTasks}">0</p>
+                                <p class="text-sm text-green-600 mt-1">
+                                    <i class="fas fa-arrow-up mr-1"></i>
+                                    <span id="totalGrowth">+0%</span> from last hour
+                                </p>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-full">
+                                <i class="fas fa-tasks text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-500 mb-1">Pending</h3>
+                                <p class="text-3xl font-bold text-yellow-600" id="pendingCount">0</p>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    Awaiting execution
+                                </p>
+                            </div>
+                            <div class="bg-yellow-100 p-3 rounded-full">
+                                <i class="fas fa-hourglass-half text-yellow-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-500 mb-1">Running</h3>
+                                <p class="text-3xl font-bold text-blue-600" id="runningCount">0</p>
+                                <p class="text-sm text-blue-600 mt-1">
+                                    <i class="fas fa-spinner fa-spin mr-1"></i>
+                                    Currently executing
+                                </p>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-full">
+                                <i class="fas fa-play text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-500 mb-1">Success Rate</h3>
+                                <p class="text-3xl font-bold text-green-600" id="successRate">0%</p>
+                                <p class="text-sm text-green-600 mt-1">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    <span id="completedCount">0</span> completed
+                                </p>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-full">
+                                <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- Status Distribution Chart -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Status Distribution</h3>
+                            <div class="flex space-x-2">
+                                <button class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-refresh"></i>
+                                </button>
+                                <button class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="relative h-64">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Performance Metrics -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Performance Metrics</h3>
+                            <span class="text-sm text-gray-500">Last 24 hours</span>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Average Execution Time</span>
+                                <span class="text-sm font-semibold text-gray-800" id="avgExecutionTime">0ms</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: 75%"></div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Task Throughput</span>
+                                <span class="text-sm font-semibold text-gray-800" id="throughput">0/min</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-green-600 h-2 rounded-full" style="width: 60%"></div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Error Rate</span>
+                                <span class="text-sm font-semibold text-red-600" id="errorRate">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-red-600 h-2 rounded-full" style="width: 15%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions Panel -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button id="createTaskBtn" class="flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                            <i class="fas fa-plus mr-2"></i>
+                            Create New Task
+                        </button>
+                        <button id="bulkCreateBtn" class="flex items-center justify-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
+                            <i class="fas fa-layer-group mr-2"></i>
+                            Bulk Create Tasks
+                        </button>
+                        <button id="cleanupBtn" class="flex items-center justify-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                            <i class="fas fa-broom mr-2"></i>
+                            Cleanup Stale Tasks
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Management Section -->
+            <div id="tasks-section" class="dashboard-section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Task Management</h2>
+                    <p class="text-gray-600">Monitor and control individual task executions</p>
+                </div>
+
+                <!-- Task Filters -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm font-medium text-gray-700">Filter by Status:</label>
+                            <select id="statusFilter" class="border border-gray-300 rounded-md px-3 py-1 text-sm">
+                                <option value="">All Statuses</option>
+                                <option value="PENDING">Pending</option>
+                                <option value="RUNNING">Running</option>
+                                <option value="SUCCEEDED">Succeeded</option>
+                                <option value="FAILED">Failed</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <label class="text-sm font-medium text-gray-700">Search:</label>
+                            <input type="text" id="taskSearch" placeholder="Search tasks..." class="border border-gray-300 rounded-md px-3 py-1 text-sm">
+                        </div>
+                        <button id="refreshTasksBtn" class="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md text-sm transition-colors">
+                            <i class="fas fa-refresh mr-2"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Enhanced Tasks Table -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-semibold text-gray-800">Task Executions</h3>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-500">Auto-refresh:</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="autoRefresh" class="sr-only peer" checked>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        <input type="checkbox" id="selectAll" class="rounded">
+                                    </th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Task Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="tasksTableBody">
+                                <tr th:each="task : ${tasks}" class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <input type="checkbox" class="task-checkbox rounded" th:value="${task.id}">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${task.id}"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900" th:text="${task.taskName}"></div>
+                                        <div class="text-sm text-gray-500" th:text="${task.executionDetails}"></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span th:if="${task.status.name() == 'PENDING'}" 
+                                              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            <i class="fas fa-clock mr-1"></i>
+                                            <span th:text="${task.status}"></span>
+                                        </span>
+                                        <span th:if="${task.status.name() == 'RUNNING'}" 
+                                              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            <i class="fas fa-spinner fa-spin mr-1"></i>
+                                            <span th:text="${task.status}"></span>
+                                        </span>
+                                        <span th:if="${task.status.name() == 'SUCCEEDED'}" 
+                                              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle mr-1"></i>
+                                            <span th:text="${task.status}"></span>
+                                        </span>
+                                        <span th:if="${task.status.name() == 'FAILED'}" 
+                                              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            <i class="fas fa-times-circle mr-1"></i>
+                                            <span th:text="${task.status}"></span>
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${#temporals.format(task.createdAt, 'MMM dd, HH:mm:ss')}"></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <span th:text="${task.durationMs != null ? task.durationMs + 'ms' : '-'}"></span>
+                                        <div th:if="${task.errorMessage != null}" class="text-xs text-red-500 mt-1" th:text="${task.errorMessage}"></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div class="flex space-x-2">
+                                            <button th:if="${task.status.name() == 'PENDING'}" 
+                                                    class="text-blue-600 hover:text-blue-900 start-task-btn" 
+                                                    th:data-task-id="${task.id}">
+                                                <i class="fas fa-play mr-1"></i>Start
+                                            </button>
+                                            <button th:if="${task.status.name() == 'RUNNING'}" 
+                                                    class="text-green-600 hover:text-green-900 complete-task-btn" 
+                                                    th:data-task-id="${task.id}">
+                                                <i class="fas fa-check mr-1"></i>Complete
+                                            </button>
+                                            <button th:if="${task.status.name() == 'RUNNING'}" 
+                                                    class="text-red-600 hover:text-red-900 fail-task-btn" 
+                                                    th:data-task-id="${task.id}">
+                                                <i class="fas fa-times mr-1"></i>Fail
+                                            </button>
+                                            <button class="text-gray-600 hover:text-gray-900 view-task-btn" 
+                                                    th:data-task-id="${task.id}">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Section -->
+            <div id="analytics-section" class="dashboard-section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Analytics & Insights</h2>
+                    <p class="text-gray-600">Detailed performance analysis and trends</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Task Execution Timeline</h3>
+                        <canvas id="timelineChart" height="200"></canvas>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Performance Trends</h3>
+                        <canvas id="performanceChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Health Section -->
+            <div id="system-section" class="dashboard-section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">System Health</h2>
+                    <p class="text-gray-600">Monitor application health and system metrics</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Health Status</h3>
+                        <div id="healthStatus" class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Database Connection</span>
+                                <span class="flex items-center text-green-600">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    Healthy
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Disk Space</span>
+                                <span class="flex items-center text-green-600">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    Available
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Application Status</span>
+                                <span class="flex items-center text-green-600">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    Running
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">System Metrics</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Uptime</span>
+                                <span class="text-sm font-semibold text-gray-800" id="uptime">--</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Memory Usage</span>
+                                <span class="text-sm font-semibold text-gray-800" id="memoryUsage">--</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Active Connections</span>
+                                <span class="text-sm font-semibold text-gray-800" id="activeConnections">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced Dashboard JavaScript
+        let statusChart, timelineChart, performanceChart;
+        let currentSection = 'overview';
+        let autoRefreshEnabled = true;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            updateAllData();
+            bindEventListeners();
+            setupNavigation();
+            startAutoRefresh();
+        });
+
+        function setupNavigation() {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.getAttribute('href').substring(1);
+                    showSection(section);
+                    
+                    // Update active nav link
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active', 'bg-blue-50', 'text-blue-600'));
+                    this.classList.add('active', 'bg-blue-50', 'text-blue-600');
+                });
+            });
+        }
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.dashboard-section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(sectionName + '-section').classList.remove('hidden');
+            currentSection = sectionName;
+        }
+
+        function initializeCharts() {
+            // Status Chart
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            statusChart = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending', 'Running', 'Succeeded', 'Failed'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: ['#FEF3C7', '#DBEAFE', '#D1FAE5', '#FEE2E2'],
+                        borderColor: ['#F59E0B', '#3B82F6', '#10B981', '#EF4444'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Timeline Chart (if analytics section is visible)
+            if (document.getElementById('timelineChart')) {
+                const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+                timelineChart = new Chart(timelineCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Tasks Created',
+                            data: [],
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+        }
+
+        function updateAllData() {
+            updateStatistics();
+            updateHealthStatus();
+            updateLastUpdateTime();
+        }
+
+        function updateStatistics() {
+            fetch('/api/tasks/statistics')
+                .then(response => response.json())
+                .then(data => {
+                    const statusCounts = data.statusCounts;
+                    const total = data.totalTasks;
+                    const succeeded = statusCounts.SUCCEEDED || 0;
+                    const failed = statusCounts.FAILED || 0;
+                    const successRate = total > 0 ? Math.round((succeeded / total) * 100) : 0;
+
+                    // Update counters
+                    document.getElementById('pendingCount').textContent = statusCounts.PENDING || 0;
+                    document.getElementById('runningCount').textContent = statusCounts.RUNNING || 0;
+                    document.getElementById('completedCount').textContent = succeeded + failed;
+                    document.getElementById('successRate').textContent = successRate + '%';
+                    document.getElementById('avgExecutionTime').textContent = Math.round(data.averageExecutionTime || 0) + 'ms';
+
+                    // Update chart
+                    statusChart.data.datasets[0].data = [
+                        statusCounts.PENDING || 0,
+                        statusCounts.RUNNING || 0,
+                        statusCounts.SUCCEEDED || 0,
+                        statusCounts.FAILED || 0
+                    ];
+                    statusChart.update();
+                })
+                .catch(error => console.error('Error updating statistics:', error));
+        }
+
+        function updateHealthStatus() {
+            fetch('/actuator/health')
+                .then(response => response.json())
+                .then(data => {
+                    // Update health indicators based on response
+                    console.log('Health status:', data);
+                })
+                .catch(error => console.error('Error fetching health status:', error));
+        }
+
+        function updateLastUpdateTime() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = now.toLocaleTimeString();
+        }
+
+        function bindEventListeners() {
+            // Quick action buttons
+            document.getElementById('createTaskBtn').addEventListener('click', createNewTask);
+            document.getElementById('bulkCreateBtn').addEventListener('click', bulkCreateTasks);
+            document.getElementById('cleanupBtn').addEventListener('click', cleanupStaleTasks);
+            
+            // Auto-refresh toggle
+            document.getElementById('autoRefresh').addEventListener('change', function() {
+                autoRefreshEnabled = this.checked;
+            });
+
+            // Task action buttons
+            bindTaskActionButtons();
+        }
+
+        function bindTaskActionButtons() {
+            document.querySelectorAll('.start-task-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => startTask(e.target.dataset.taskId));
+            });
+            
+            document.querySelectorAll('.complete-task-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => completeTask(e.target.dataset.taskId));
+            });
+            
+            document.querySelectorAll('.fail-task-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => failTask(e.target.dataset.taskId));
+            });
+        }
+
+        function createNewTask() {
+            const taskName = prompt('Enter task name:');
+            if (taskName) {
+                fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        taskName: taskName,
+                        executionDetails: 'Created from dashboard'
+                    })
+                })
+                .then(response => response.json())
+                .then(() => {
+                    updateAllData();
+                    if (currentSection === 'tasks') {
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                });
+            }
+        }
+
+        function bulkCreateTasks() {
+            const count = prompt('How many tasks to create?', '5');
+            if (count && !isNaN(count)) {
+                const promises = [];
+                for (let i = 1; i <= parseInt(count); i++) {
+                    promises.push(
+                        fetch('/api/tasks', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                taskName: `bulk-task-${i}`,
+                                executionDetails: `Bulk created task ${i}`
+                            })
+                        })
+                    );
+                }
+                Promise.all(promises).then(() => {
+                    updateAllData();
+                    if (currentSection === 'tasks') {
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                });
+            }
+        }
+
+        function startTask(taskId) {
+            fetch(`/api/tasks/${taskId}/start`, { method: 'POST' })
+                .then(() => updateAllData());
+        }
+
+        function completeTask(taskId) {
+            fetch(`/api/tasks/${taskId}/complete`, { method: 'POST' })
+                .then(() => updateAllData());
+        }
+
+        function failTask(taskId) {
+            const errorMessage = prompt('Enter error message:') || 'Manual failure';
+            fetch(`/api/tasks/${taskId}/fail?errorMessage=${encodeURIComponent(errorMessage)}`, { method: 'POST' })
+                .then(() => updateAllData());
+        }
+
+        function cleanupStaleTasks() {
+            if (confirm('Clean up stale running tasks?')) {
+                fetch('/api/tasks/cleanup-stale', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(`Cleaned up ${data.cleanedTasksCount} stale tasks`);
+                        updateAllData();
+                    });
+            }
+        }
+
+        function startAutoRefresh() {
+            setInterval(() => {
+                if (autoRefreshEnabled) {
+                    updateAllData();
+                }
+            }, 10000); // Update every 10 seconds
+        }
+
+        // CSS for active nav link
+        const style = document.createElement('style');
+        style.textContent = `
+            .nav-link.active {
+                background-color: #EBF8FF !important;
+                color: #2563EB !important;
+                border-right: 3px solid #2563EB;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
