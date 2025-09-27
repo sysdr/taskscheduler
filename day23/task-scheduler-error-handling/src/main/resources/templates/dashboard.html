@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler Dashboard - Error Handling</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .pending { color: #ffa500; }
+        .running { color: #007bff; }
+        .succeeded { color: #28a745; }
+        .failed { color: #dc3545; }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .controls {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: transform 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .form-control {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-running {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-succeeded {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-failed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .pagination a {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #333;
+            transition: background-color 0.2s ease;
+        }
+
+        .pagination a:hover {
+            background: #f8f9fa;
+        }
+
+        .pagination .current {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .error-details {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Task Scheduler Dashboard</h1>
+            <p>Day 23: Basic Error Handling Implementation</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number pending" th:text="${stats.pending}">0</div>
+                <div class="stat-label">Pending Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number running" th:text="${stats.running}">0</div>
+                <div class="stat-label">Running Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number succeeded" th:text="${stats.succeeded}">0</div>
+                <div class="stat-label">Succeeded Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number failed" th:text="${stats.failed}">0</div>
+                <div class="stat-label">Failed Tasks</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <h2 class="section-title">Task Management</h2>
+            
+            <div class="controls">
+                <div class="input-group">
+                    <input type="text" id="taskName" class="form-control" placeholder="Task name" />
+                    <input type="text" id="taskDescription" class="form-control" placeholder="Task description" />
+                    <button class="btn" onclick="createTask()">Create Task</button>
+                </div>
+                <button class="btn" onclick="refreshTasks()">Refresh</button>
+                <button class="btn btn-danger" onclick="cleanupStuckTasks()">Cleanup Stuck Tasks</button>
+            </div>
+
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Started</th>
+                            <th>Completed</th>
+                            <th>Error</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="task : ${tasks.content}">
+                            <td th:text="${task.id}"></td>
+                            <td th:text="${task.name}"></td>
+                            <td>
+                                <span class="status-badge" 
+                                      th:classappend="'status-' + ${task.status.name().toLowerCase()}"
+                                      th:text="${task.status}"></span>
+                            </td>
+                            <td th:text="${#temporals.format(task.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+                            <td th:text="${task.startedAt != null ? #temporals.format(task.startedAt, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+                            <td th:text="${task.completedAt != null ? #temporals.format(task.completedAt, 'yyyy-MM-dd HH:mm') : '-'}"></td>
+                            <td class="error-details" th:text="${task.errorMessage ?: '-'}" th:title="${task.errorMessage}"></td>
+                            <td>
+                                <button class="btn" 
+                                        th:if="${task.status.name() == 'PENDING'}"
+                                        th:onclick="'executeTask(' + ${task.id} + ')'">Execute</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination" th:if="${totalPages > 1}">
+                <a th:href="@{/(page=${currentPage - 1})}" 
+                   th:if="${currentPage > 0}">Previous</a>
+                
+                <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                    <a th:href="@{/(page=${i})}" 
+                       th:text="${i + 1}"
+                       th:class="${i == currentPage} ? 'current' : ''"></a>
+                </span>
+                
+                <a th:href="@{/(page=${currentPage + 1})}" 
+                   th:if="${currentPage < totalPages - 1}">Next</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Ultra Scalable Task Scheduler - Day 23: Basic Error Handling</p>
+            <p>Total Tasks: <span th:text="${totalElements}">0</span></p>
+        </div>
+    </div>
+
+    <script>
+        async function createTask() {
+            const name = document.getElementById('taskName').value;
+            const description = document.getElementById('taskDescription').value;
+            
+            if (!name.trim()) {
+                alert('Please enter a task name');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        description: description
+                    })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('taskName').value = '';
+                    document.getElementById('taskDescription').value = '';
+                    location.reload();
+                } else {
+                    alert('Failed to create task');
+                }
+            } catch (error) {
+                alert('Error creating task: ' + error.message);
+            }
+        }
+        
+        async function executeTask(taskId) {
+            try {
+                const response = await fetch(`/api/tasks/${taskId}/execute`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    alert(`Task ${taskId} execution started`);
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alert('Failed to execute task');
+                }
+            } catch (error) {
+                alert('Error executing task: ' + error.message);
+            }
+        }
+        
+        async function cleanupStuckTasks() {
+            try {
+                const response = await fetch('/api/tasks/cleanup-stuck?timeoutMinutes=5', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    alert('Stuck tasks cleanup completed');
+                    location.reload();
+                } else {
+                    alert('Failed to cleanup stuck tasks');
+                }
+            } catch (error) {
+                alert('Error cleaning up stuck tasks: ' + error.message);
+            }
+        }
+        
+        function refreshTasks() {
+            location.reload();
+        }
+        
+        // Auto-refresh every 30 seconds
+        setInterval(refreshTasks, 30000);
+    </script>
+</body>
+</html>
