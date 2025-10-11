@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dead Letter Queue Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .dlq-card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        .dlq-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .failure-badge {
+            font-size: 0.8em;
+            padding: 0.5em 0.8em;
+        }
+        .navbar-brand { font-weight: bold; }
+    </style>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-cogs"></i> Task Scheduler DLQ
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a class="nav-link" href="/h2-console" target="_blank">
+                    <i class="fas fa-database"></i> Database
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h1><i class="fas fa-skull-crossbones text-danger"></i> Dead Letter Queue</h1>
+                <p class="text-muted">Monitor and manage failed tasks that require attention</p>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card dlq-card bg-danger text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <h3 th:text="${unprocessedCount}">0</h3>
+                        <p class="mb-0">Unprocessed Tasks</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card dlq-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Failure Reasons</h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${failureStats.empty}">
+                            <p class="text-muted mb-0">No failure statistics available</p>
+                        </div>
+                        <div th:if="${!failureStats.empty}">
+                            <div class="row">
+                                <div class="col-md-6" th:each="stat : ${failureStats}">
+                                    <span class="badge failure-badge bg-warning text-dark me-2" 
+                                          th:text="${stat.key}">REASON</span>
+                                    <span th:text="${stat.value}">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DLQ Task List -->
+        <div class="card dlq-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-list"></i> Dead Letter Tasks</h5>
+                <button class="btn btn-sm btn-outline-primary" onclick="refreshTasks()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="dlq-tasks-list">
+                    <div class="text-center">
+                        <i class="fas fa-spinner fa-spin"></i> Loading dead letter tasks...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Detail Modal -->
+    <div class="modal fade" id="taskDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Task Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="taskDetailBody">
+                    <!-- Content loaded dynamically -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="reprocessButton">Reprocess Task</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentTasks = [];
+        
+        function refreshTasks() {
+            fetch('/api/dlq?size=50')
+                .then(response => response.json())
+                .then(data => {
+                    currentTasks = data.content;
+                    renderTasks(currentTasks);
+                })
+                .catch(error => {
+                    document.getElementById('dlq-tasks-list').innerHTML = 
+                        '<div class="alert alert-danger">Error loading tasks: ' + error.message + '</div>';
+                });
+        }
+        
+        function renderTasks(tasks) {
+            const container = document.getElementById('dlq-tasks-list');
+            
+            if (tasks.length === 0) {
+                container.innerHTML = '<div class="alert alert-info"><i class="fas fa-info-circle"></i> No dead letter tasks found</div>';
+                return;
+            }
+            
+            const html = tasks.map(task => `
+                <div class="row border-bottom py-3 align-items-center">
+                    <div class="col-md-3">
+                        <strong>${task.taskName}</strong>
+                        <br><small class="text-muted">${task.originalTaskId}</small>
+                    </div>
+                    <div class="col-md-2">
+                        <span class="badge bg-${getFailureColor(task.failureReason)}">${task.failureReason}</span>
+                    </div>
+                    <div class="col-md-2">
+                        <small class="text-muted">
+                            ${new Date(task.deadLetteredAt).toLocaleDateString()}
+                            <br>${new Date(task.deadLetteredAt).toLocaleTimeString()}
+                        </small>
+                    </div>
+                    <div class="col-md-2">
+                        <span class="badge bg-secondary">${task.totalRetryAttempts} attempts</span>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-info" onclick="showTaskDetails('${task.id}')">
+                                <i class="fas fa-eye"></i> Details
+                            </button>
+                            <button class="btn btn-outline-success ${task.reprocessed ? 'disabled' : ''}" 
+                                    onclick="reprocessTask('${task.id}')"
+                                    ${task.reprocessed ? 'disabled' : ''}>
+                                <i class="fas fa-redo"></i> ${task.reprocessed ? 'Done' : 'Reprocess'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+        
+        function getFailureColor(reason) {
+            const colors = {
+                'TIMEOUT': 'warning',
+                'NETWORK_ERROR': 'danger',
+                'VALIDATION_ERROR': 'info',
+                'INVALID_DATA': 'primary',
+                'PROCESSING_ERROR': 'secondary',
+                'UNKNOWN': 'dark'
+            };
+            return colors[reason] || 'secondary';
+        }
+        
+        function showTaskDetails(taskId) {
+            const task = currentTasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            const html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Basic Information</h6>
+                        <table class="table table-sm">
+                            <tr><th>Task Name:</th><td>${task.taskName}</td></tr>
+                            <tr><th>Original ID:</th><td><code>${task.originalTaskId}</code></td></tr>
+                            <tr><th>Failure Reason:</th><td><span class="badge bg-${getFailureColor(task.failureReason)}">${task.failureReason}</span></td></tr>
+                            <tr><th>Retry Attempts:</th><td>${task.totalRetryAttempts}</td></tr>
+                            <tr><th>Dead Lettered:</th><td>${new Date(task.deadLetteredAt).toLocaleString()}</td></tr>
+                            <tr><th>Status:</th><td>${task.reprocessed ? 'Reprocessed' : 'Pending'}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Payload</h6>
+                        <pre class="bg-light p-2 rounded"><code>${JSON.stringify(JSON.parse(task.taskPayload || '{}'), null, 2)}</code></pre>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Final Exception</h6>
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> ${task.finalException}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-12">
+                        <h6>System Context</h6>
+                        <pre class="bg-light p-2 rounded small"><code>${task.systemContext}</code></pre>
+                    </div>
+                </div>
+                
+                ${task.stackTrace ? `
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Stack Trace</h6>
+                        <pre class="bg-light p-2 rounded small" style="max-height: 200px; overflow-y: auto;"><code>${task.stackTrace}</code></pre>
+                    </div>
+                </div>
+                ` : ''}
+            `;
+            
+            document.getElementById('taskDetailBody').innerHTML = html;
+            document.getElementById('reprocessButton').onclick = () => reprocessTask(taskId);
+            
+            new bootstrap.Modal(document.getElementById('taskDetailModal')).show();
+        }
+        
+        function reprocessTask(taskId) {
+            if (!confirm('Are you sure you want to reprocess this task? It will be created as a new task.')) {
+                return;
+            }
+            
+            fetch(`/api/dlq/${taskId}/reprocess`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ notes: 'Reprocessed from DLQ dashboard' })
+            })
+                .then(response => response.text())
+                .then(message => {
+                    alert('✅ ' + message);
+                    bootstrap.Modal.getInstance(document.getElementById('taskDetailModal'))?.hide();
+                    refreshTasks();
+                })
+                .catch(error => alert('❌ Error reprocessing task: ' + error.message));
+        }
+        
+        // Auto-refresh every 10 seconds
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshTasks();
+            setInterval(refreshTasks, 10000);
+        });
+    </script>
+</body>
+</html>
