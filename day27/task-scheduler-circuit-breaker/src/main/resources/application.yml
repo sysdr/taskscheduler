@@ -1,0 +1,56 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:taskdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  h2:
+    console:
+      enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,circuitbreakers,circuitbreakerevents
+  endpoint:
+    health:
+      show-details: always
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+        slowCallRateThreshold: 50
+        slowCallDurationThreshold: 5s
+    instances:
+      paymentService:
+        baseConfig: default
+        failureRateThreshold: 30
+        waitDurationInOpenState: 60s
+      notificationService:
+        baseConfig: default
+        failureRateThreshold: 40
+        waitDurationInOpenState: 45s
+      auditService:
+        baseConfig: default
+        failureRateThreshold: 60
+        waitDurationInOpenState: 20s
+
+logging:
+  level:
+    com.scheduler: DEBUG
+    io.github.resilience4j: DEBUG

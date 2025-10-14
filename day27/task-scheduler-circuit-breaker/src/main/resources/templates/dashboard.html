@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler - Circuit Breaker Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/dashboard.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-shield-alt"></i> Circuit Breaker Task Scheduler</h1>
+            <div class="header-controls">
+                <button id="refreshBtn" class="btn btn-primary">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Circuit Breaker Status Cards -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-credit-card"></i> Payment Service</h2>
+                    <span id="paymentStatus" class="status-indicator"></span>
+                </div>
+                <div class="card-content">
+                    <div class="metric">
+                        <span class="metric-label">Circuit State:</span>
+                        <span id="paymentCircuitState" class="circuit-state">CLOSED</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Failure Rate:</span>
+                        <span id="paymentFailureRate">0%</span>
+                    </div>
+                    <button onclick="toggleService('payment')" class="btn btn-warning">
+                        <span th:text="${paymentDown ? 'Enable Service' : 'Simulate Failure'}"></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-bell"></i> Notification Service</h2>
+                    <span id="notificationStatus" class="status-indicator"></span>
+                </div>
+                <div class="card-content">
+                    <div class="metric">
+                        <span class="metric-label">Circuit State:</span>
+                        <span id="notificationCircuitState" class="circuit-state">CLOSED</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Failure Rate:</span>
+                        <span id="notificationFailureRate">0%</span>
+                    </div>
+                    <button onclick="toggleService('notification')" class="btn btn-warning">
+                        <span th:text="${notificationFlakey ? 'Stabilize Service' : 'Make Flakey'}"></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-clipboard-list"></i> Audit Service</h2>
+                    <span id="auditStatus" class="status-indicator status-healthy"></span>
+                </div>
+                <div class="card-content">
+                    <div class="metric">
+                        <span class="metric-label">Circuit State:</span>
+                        <span id="auditCircuitState" class="circuit-state">CLOSED</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Failure Rate:</span>
+                        <span id="auditFailureRate">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Creation Panel -->
+            <div class="card task-creator">
+                <div class="card-header">
+                    <h2><i class="fas fa-plus-circle"></i> Create Task</h2>
+                </div>
+                <div class="card-content">
+                    <form id="taskForm">
+                        <div class="form-group">
+                            <label>Task Name:</label>
+                            <input type="text" id="taskName" placeholder="Enter task name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Task Type:</label>
+                            <select id="taskType" required>
+                                <option value="PAYMENT">Payment</option>
+                                <option value="NOTIFICATION">Notification</option>
+                                <option value="AUDIT">Audit</option>
+                                <option value="GENERAL">General</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-play"></i> Create Task
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Recent Tasks Table -->
+            <div class="card tasks-table">
+                <div class="card-header">
+                    <h2><i class="fas fa-tasks"></i> Recent Tasks</h2>
+                </div>
+                <div class="card-content">
+                    <div class="table-container">
+                        <table id="tasksTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Error</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="task : ${tasks}">
+                                    <td th:text="${task.id}"></td>
+                                    <td th:text="${task.name}"></td>
+                                    <td th:text="${task.type}"></td>
+                                    <td>
+                                        <span th:text="${task.status}" 
+                                              th:class="'status status-' + ${task.status.name().toLowerCase()}"></span>
+                                    </td>
+                                    <td th:text="${#temporals.format(task.createdAt, 'HH:mm:ss')}"></td>
+                                    <td th:text="${task.errorMessage ?: ''}"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
