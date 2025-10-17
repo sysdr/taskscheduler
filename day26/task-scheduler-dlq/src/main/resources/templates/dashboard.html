@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .dashboard-card {
+            transition: transform 0.2s;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+        .card-gradient-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-gradient-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .card-gradient-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .card-gradient-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .card-gradient-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .card-gradient-6 { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        .navbar-brand { font-weight: bold; }
+        .btn-create { background: linear-gradient(45deg, #667eea, #764ba2); border: none; }
+        .btn-create:hover { background: linear-gradient(45deg, #764ba2, #667eea); }
+    </style>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-cogs"></i> Task Scheduler DLQ
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dlq">
+                    <i class="fas fa-exclamation-triangle"></i> Dead Letter Queue
+                </a>
+                <a class="nav-link" href="/h2-console" target="_blank">
+                    <i class="fas fa-database"></i> Database
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h1><i class="fas fa-tachometer-alt"></i> Task Scheduler Dashboard</h1>
+                <p class="text-muted">Monitor your task processing and dead letter queue statistics</p>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-create text-white" onclick="createTestTasks()">
+                    <i class="fas fa-plus"></i> Create Demo Tasks
+                </button>
+                <button class="btn btn-outline-primary ms-2" onclick="loadData()">
+                    <i class="fas fa-sync-alt"></i> Refresh Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="col-md-2 mb-3">
+                <div class="card dashboard-card card-gradient-1 text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tasks fa-2x mb-2"></i>
+                        <h3 id="total-tasks" th:text="${stats.totalTasks}">0</h3>
+                        <p class="mb-0">Total Tasks</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 mb-3">
+                <div class="card dashboard-card card-gradient-2 text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-clock fa-2x mb-2"></i>
+                        <h3 id="created-tasks" th:text="${stats.createdTasks}">0</h3>
+                        <p class="mb-0">Created</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 mb-3">
+                <div class="card dashboard-card card-gradient-3 text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-spinner fa-2x mb-2"></i>
+                        <h3 id="processing-tasks" th:text="${stats.processingTasks}">0</h3>
+                        <p class="mb-0">Processing</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 mb-3">
+                <div class="card dashboard-card card-gradient-4 text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-check-circle fa-2x mb-2"></i>
+                        <h3 id="completed-tasks" th:text="${stats.completedTasks}">0</h3>
+                        <p class="mb-0">Completed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 mb-3">
+                <div class="card dashboard-card card-gradient-5 text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-redo fa-2x mb-2"></i>
+                        <h3 id="retrying-tasks" th:text="${stats.retryingTasks}">0</h3>
+                        <p class="mb-0">Retrying</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 mb-3">
+                <div class="card dashboard-card card-gradient-6 text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-skull-crossbones fa-2x mb-2"></i>
+                        <h3 id="dead-letter-tasks" th:text="${stats.deadLetterTasks}">0</h3>
+                        <p class="mb-0">Dead Letter</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Lists -->
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-list"></i> Recent Tasks</h5>
+                    </div>
+                    <div class="card-body" id="recent-tasks">
+                        <div class="text-center">
+                            <i class="fas fa-spinner fa-spin"></i> Loading tasks...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Failed Tasks (DLQ)</h5>
+                    </div>
+                    <div class="card-body" id="dlq-tasks">
+                        <div class="text-center">
+                            <i class="fas fa-spinner fa-spin"></i> Loading DLQ tasks...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let refreshInterval;
+        
+        function loadRecentTasks() {
+            const container = document.getElementById('recent-tasks');
+            container.innerHTML = '<p class="text-muted"><i class="fas fa-spinner fa-spin"></i> Loading tasks...</p>';
+            
+            fetch('/api/tasks')
+                .then(response => response.json())
+                .then(tasks => {
+                    if (tasks.length === 0) {
+                        container.innerHTML = '<p class="text-muted">No tasks found</p>';
+                        return;
+                    }
+                    
+                    const html = tasks.slice(0, 10).map(task => `
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <strong>${task.name}</strong>
+                                <br><small class="text-muted">${task.id}</small>
+                            </div>
+                            <span class="badge bg-${getStatusColor(task.status)}">${task.status}</span>
+                        </div>
+                    `).join('');
+                    
+                    container.innerHTML = html;
+                })
+                .catch(error => {
+                    container.innerHTML = '<p class="text-danger">Error loading tasks</p>';
+                });
+        }
+        
+        function loadDLQTasks() {
+            const container = document.getElementById('dlq-tasks');
+            container.innerHTML = '<p class="text-muted"><i class="fas fa-spinner fa-spin"></i> Loading DLQ tasks...</p>';
+            
+            fetch('/api/dlq?size=5')
+                .then(response => response.json())
+                .then(data => {
+                    const tasks = data.content;
+                    
+                    if (tasks.length === 0) {
+                        container.innerHTML = '<p class="text-muted">No dead letter tasks</p>';
+                        return;
+                    }
+                    
+                    const html = tasks.map(task => `
+                        <div class="border-bottom py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${task.taskName}</strong>
+                                    <br><small class="text-muted">${task.failureReason}</small>
+                                </div>
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        onclick="reprocessTask('${task.id}')">Reprocess</button>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    container.innerHTML = html;
+                })
+                .catch(error => {
+                    container.innerHTML = '<p class="text-danger">Error loading DLQ tasks</p>';
+                });
+        }
+        
+        function getStatusColor(status) {
+            const colors = {
+                'CREATED': 'secondary',
+                'PROCESSING': 'info',
+                'COMPLETED': 'success',
+                'RETRYING': 'warning',
+                'DEAD_LETTER': 'danger'
+            };
+            return colors[status] || 'secondary';
+        }
+        
+        function createTestTasks() {
+            fetch('/api/tasks/demo/create-test-tasks', { method: 'POST' })
+                .then(response => response.text())
+                .then(message => {
+                    alert('✅ ' + message);
+                    loadData();
+                })
+                .catch(error => alert('❌ Error creating test tasks'));
+        }
+        
+        function reprocessTask(taskId) {
+            if (!confirm('Are you sure you want to reprocess this task?')) return;
+            
+            fetch(`/api/dlq/${taskId}/reprocess`, { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ notes: 'Reprocessed from dashboard' })
+            })
+                .then(response => response.text())
+                .then(message => {
+                    alert('✅ ' + message);
+                    loadData();
+                })
+                .catch(error => alert('❌ Error reprocessing task'));
+        }
+        
+        function loadStatistics() {
+            fetch('/api/dashboard/stats')
+                .then(response => response.json())
+                .then(stats => {
+                    document.getElementById('total-tasks').textContent = stats.totalTasks;
+                    document.getElementById('created-tasks').textContent = stats.createdTasks;
+                    document.getElementById('processing-tasks').textContent = stats.processingTasks;
+                    document.getElementById('completed-tasks').textContent = stats.completedTasks;
+                    document.getElementById('retrying-tasks').textContent = stats.retryingTasks;
+                    document.getElementById('dead-letter-tasks').textContent = stats.deadLetterTasks;
+                })
+                .catch(error => {
+                    console.error('Error loading statistics:', error);
+                });
+        }
+        
+        function loadData() {
+            console.log('Refreshing dashboard data...');
+            loadStatistics();
+            loadRecentTasks();
+            loadDLQTasks();
+            // Show visual feedback
+            const refreshBtn = document.querySelector('button[onclick="loadData()"]');
+            if (refreshBtn) {
+                refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+                refreshBtn.disabled = true;
+                setTimeout(() => {
+                    refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Data';
+                    refreshBtn.disabled = false;
+                }, 1000);
+            }
+        }
+        
+        // Auto-refresh every 5 seconds
+        function startAutoRefresh() {
+            loadData();
+            // refreshInterval = setInterval(loadData, 5000); // Disabled auto-refresh
+        }
+        
+        // Start auto-refresh on page load
+        document.addEventListener('DOMContentLoaded', startAutoRefresh);
+    </script>
+</body>
+</html>
