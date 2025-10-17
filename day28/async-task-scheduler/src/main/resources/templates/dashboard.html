@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Async Task Scheduler Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 Async Task Scheduler</h1>
+            <p class="subtitle">Real-time monitoring of asynchronous task execution</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number total" id="totalTasks" th:text="${totalTasks}">0</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number pending" id="pendingTasks" th:text="${pendingTasks}">0</div>
+                <div class="stat-label">Pending/Submitted</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number executing" id="executingTasks" th:text="${executingTasks}">0</div>
+                <div class="stat-label">Executing</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number completed" id="completedTasks" th:text="${completedTasks}">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number failed" id="failedTasks" th:text="${failedTasks}">0</div>
+                <div class="stat-label">Failed</div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <h2>📋 Task Controls</h2>
+            <div class="button-group">
+                <button id="createEmailTask" class="btn btn-email">Create Email Task</button>
+                <button id="createReportTask" class="btn btn-report">Create Report Task</button>
+                <button id="createDataTask" class="btn btn-data">Create Data Task</button>
+                <button id="refreshTasks" class="btn btn-refresh">Refresh</button>
+            </div>
+        </div>
+
+        <div class="tasks-section">
+            <h2>📊 Recent Tasks</h2>
+            <div id="tasksList">
+                <div class="loading">Loading tasks...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
