@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeout Task Scheduler Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script>
+        // Debug WebSocket libraries
+        console.log('SockJS available:', typeof SockJS !== 'undefined');
+        console.log('STOMP available:', typeof Stomp !== 'undefined');
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🔄 Timeout Task Scheduler</h1>
+            <p class="subtitle">Day 29: Real-time Task Timeout Management</p>
+        </header>
+
+        <div class="controls-section">
+            <div class="control-panel">
+                <h3>Submit New Task</h3>
+                <div class="form-group">
+                    <label for="taskType">Task Type:</label>
+                    <select id="taskType">
+                        <option value="FAST_TASK">Fast Task (1s)</option>
+                        <option value="MEDIUM_TASK">Medium Task (5s)</option>
+                        <option value="SLOW_TASK">Slow Task (15s)</option>
+                        <option value="INFINITE_TASK">Infinite Task (∞)</option>
+                        <option value="RANDOM_DURATION">Random Duration</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="timeoutSeconds">Timeout (seconds):</label>
+                    <input type="number" id="timeoutSeconds" value="10" min="1" max="60">
+                </div>
+                <div class="form-group">
+                    <label for="payload">Payload:</label>
+                    <input type="text" id="payload" placeholder="Task payload...">
+                </div>
+                <button id="submitTask" class="submit-btn">Submit Task</button>
+            </div>
+
+            <div class="stats-panel">
+                <h3>System Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">Active Tasks</span>
+                        <span class="stat-value" id="activeTasks">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Completed</span>
+                        <span class="stat-value" id="completedTasks">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Timed Out</span>
+                        <span class="stat-value" id="timedOutTasks">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Success Rate</span>
+                        <span class="stat-value" id="successRate">100%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-section">
+            <div class="chart-container">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+
+        <div class="tasks-section">
+            <h3>Task Execution Monitor</h3>
+            <div class="tasks-container" id="tasksContainer">
+                <!-- Tasks will be dynamically added here -->
+            </div>
+        </div>
+
+        <div class="log-section">
+            <h3>Activity Log</h3>
+            <div class="log-container" id="logContainer">
+                <!-- Log entries will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

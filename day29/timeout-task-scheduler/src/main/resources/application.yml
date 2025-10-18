@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: timeout-task-scheduler
+  threads:
+    virtual:
+      enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+scheduler:
+  timeout:
+    default-timeout-seconds: 30
+    warning-threshold-percent: 80
+    cleanup-interval-seconds: 5
+    max-concurrent-tasks: 100
+  thread-pool:
+    core-size: 10
+    max-size: 50
+    queue-capacity: 1000
