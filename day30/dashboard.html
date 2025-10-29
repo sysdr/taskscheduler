@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graceful Shutdown Task Scheduler Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #2d3748;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #4a5568;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .status-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 12px;
+            border-left: 4px solid;
+        }
+        
+        .status-pending { border-left-color: #ed8936; }
+        .status-running { border-left-color: #4299e1; }
+        .status-completed { border-left-color: #48bb78; }
+        .status-suspended { border-left-color: #9f7aea; }
+        .status-failed { border-left-color: #f56565; }
+        
+        .status-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        
+        .status-label {
+            font-size: 0.875rem;
+            color: #718096;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0.25rem;
+            font-size: 0.875rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(66, 153, 225, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+        }
+        
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-online { background-color: #48bb78; }
+        .status-offline { background-color: #f56565; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .task-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .task-item {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid;
+        }
+        
+        .task-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .task-progress {
+            background: #e2e8f0;
+            border-radius: 4px;
+            height: 6px;
+            margin: 0.5rem 0;
+            overflow: hidden;
+        }
+        
+        .task-progress-bar {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        .info-box {
+            background: #edf2f7;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .info-box h3 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+        
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .info-box li {
+            padding: 0.5rem 0;
+            color: #4a5568;
+        }
+        
+        .code-block {
+            background: #1a202c;
+            color: #48bb78;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Graceful Shutdown Task Scheduler</h1>
+            <p>Ultra-scalable task scheduling with robust shutdown mechanisms</p>
+        </div>
+        
+        <div class="info-box">
+            <h3>📋 Project Overview</h3>
+            <ul>
+                <li><strong>Project Location:</strong> /home/systemdr/git/taskscheduler/day30/graceful-shutdown-scheduler</li>
+                <li><strong>Application Port:</strong> 8080</li>
+                <li><strong>Dashboard URL:</strong> http://localhost:8080/</li>
+                <li><strong>API Base URL:</strong> http://localhost:8080/api/tasks</li>
+                <li><strong>H2 Console:</strong> http://localhost:8080/h2-console</li>
+                <li><strong>Actuator:</strong> http://localhost:8080/actuator</li>
+            </ul>
+            <br>
+            <h3>🎯 Expected Features</h3>
+            <ul>
+                <li>✅ Graceful shutdown with configurable timeout (30 seconds)</li>
+                <li>✅ Real-time task monitoring dashboard</li>
+                <li>✅ Task state persistence and recovery</li>
+                <li>✅ Modern, responsive web UI</li>
+                <li>✅ Production-ready metrics and health checks</li>
+                <li>✅ H2 in-memory database for task tracking</li>
+                <li>✅ Spring Boot Actuator for monitoring</li>
+                <li>✅ RESTful API for task management</li>
+            </ul>
+        </div>
+        
+        <div class="info-box">
+            <h3>📊 API Endpoints</h3>
+            <div class="code-block">
+POST   /api/tasks              # Create a new task<br>
+GET    /api/tasks              # Get all tasks<br>
+GET    /api/tasks/{id}         # Get task by ID<br>
+POST   /api/tasks/demo-scenario # Create demo scenario with 5 tasks<br>
+POST   /api/tasks/shutdown     # Initiate graceful shutdown<br>
+GET    /api/tasks/status       # Get system status and metrics
+            </div>
+        </div>
+        
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>📊 System Status</h3>
+                <div class="system-status">
+                    <div class="status-indicator status-online"></div>
+                    <span><strong>Status:</strong> Ready to Start</span>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <div style="margin-bottom: 0.5rem;"><strong>Accepting New Tasks:</strong> Yes</div>
+                    <div><strong>Shutdown Initiated:</strong> No</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>📈 Task Statistics</h3>
+                <div class="status-grid">
+                    <div class="status-item status-pending">
+                        <div class="status-number">5</div>
+                        <div class="status-label">Pending</div>
+                    </div>
+                    <div class="status-item status-running">
+                        <div class="status-number">3</div>
+                        <div class="status-label">Running</div>
+                    </div>
+                    <div class="status-item status-completed">
+                        <div class="status-number">12</div>
+                        <div class="status-label">Completed</div>
+                    </div>
+                    <div class="status-item status-suspended">
+                        <div class="status-number">2</div>
+                        <div class="status-label">Suspended</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>🎮 Demo Actions</h3>
+                <p style="margin-bottom: 1rem; color: #718096; font-size: 0.875rem;">
+                    Start the application and test these features:
+                </p>
+                <button class="btn btn-success" onclick="window.location.href='http://localhost:8080'" target="_blank">
+                    🚀 Open Dashboard
+                </button>
+                <div style="margin-top: 0.5rem;">
+                    <button class="btn" onclick="showInstructions()">
+                        📖 How to Use
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>🎬 Demo Scenario Workflow</h3>
+            <div class="info-box" style="margin-bottom: 1rem; background: #f7fafc;">
+                <h4 style="margin-bottom: 0.75rem;">Step 1: Start the Application</h4>
+                <div class="code-block">
+cd /home/systemdr/git/taskscheduler/day30/graceful-shutdown-scheduler<br>
+./start.sh
+                </div>
+            </div>
+            
+            <div class="info-box" style="margin-bottom: 1rem; background: #f7fafc;">
+                <h4 style="margin-bottom: 0.75rem;">Step 2: Create Demo Tasks</h4>
+                <p>Click "Create Demo Scenario" button on the dashboard to create 5 tasks with varying durations:</p>
+                <ul style="margin-top: 0.5rem;">
+                    <li>• Quick Email Send (5 seconds)</li>
+                    <li>• Data Processing (15 seconds)</li>
+                    <li>• Report Generation (25 seconds)</li>
+                    <li>• Database Backup (45 seconds)</li>
+                    <li>• Image Processing (60 seconds)</li>
+                </ul>
+            </div>
+            
+            <div class="info-box" style="margin-bottom: 1rem; background: #f7fafc;">
+                <h4 style="margin-bottom: 0.75rem;">Step 3: Observe Task Execution</h4>
+                <p>Watch the dashboard update in real-time showing:</p>
+                <ul style="margin-top: 0.5rem;">
+                    <li>• Task progress percentages</li>
+                    <li>• Status changes (Pending → Running → Completed)</li>
+                    <li>• Live statistics counter updates</li>
+                </ul>
+            </div>
+            
+            <div class="info-box" style="background: #f7fafc;">
+                <h4 style="margin-bottom: 0.75rem;">Step 4: Test Graceful Shutdown</h4>
+                <p>After 10 seconds of task execution, click "Initiate Graceful Shutdown" button. Watch as:</p>
+                <ul style="margin-top: 0.5rem;">
+                    <li>• System stops accepting new tasks</li>
+                    <li>• Short tasks (5s, 15s) complete successfully</li>
+                    <li>• Long tasks (45s, 60s) are gracefully suspended</li>
+                    <li>• Task states are persisted in database</li>
+                    <li>• Final statistics are logged before shutdown</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>💡 Key Features Demonstration</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                <div style="padding: 1rem; background: #f7fafc; border-radius: 8px;">
+                    <h4 style="color: #4299e1; margin-bottom: 0.5rem;">🔄 State Persistence</h4>
+                    <p style="font-size: 0.875rem; color: #4a5568;">Tasks are saved to H2 database and can be recovered after restart</p>
+                </div>
+                <div style="padding: 1rem; background: #f7fafc; border-radius: 8px;">
+                    <h4 style="color: #48bb78; margin-bottom: 0.5rem;">⏱️ Graceful Shutdown</h4>
+                    <p style="font-size: 0.875rem; color: #4a5568;">30-second timeout allows running tasks to complete before suspension</p>
+                </div>
+                <div style="padding: 1rem; background: #f7fafc; border-radius: 8px;">
+                    <h4 style="color: #9f7aea; margin-bottom: 0.5rem;">📊 Real-time Updates</h4>
+                    <p style="font-size: 0.875rem; color: #4a5568;">Dashboard auto-refreshes every 5 seconds with latest task data</p>
+                </div>
+                <div style="padding: 1rem; background: #f7fafc; border-radius: 8px;">
+                    <h4 style="color: #f56565; margin-bottom: 0.5rem;">🛡️ Circuit Breaker</h4>
+                    <p style="font-size: 0.875rem; color: #4a5568;">Stops accepting new tasks during shutdown phase</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showInstructions() {
+            alert('📖 How to Use:\n\n1. Navigate to the project directory:\n   cd /home/systemdr/git/taskscheduler/day30/graceful-shutdown-scheduler\n\n2. Start the application:\n   ./start.sh\n\n3. Open dashboard in browser:\n   http://localhost:8080/\n\n4. Click "Create Demo Scenario" to start 5 tasks\n\n5. Wait 10 seconds, then click "Initiate Graceful Shutdown"\n\n6. Observe the graceful shutdown process!\n\nPress Ctrl+C in terminal to stop the application.');
+        }
+    </script>
+</body>
+</html>
+

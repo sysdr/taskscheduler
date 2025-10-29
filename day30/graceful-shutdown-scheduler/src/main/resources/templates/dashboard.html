@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graceful Shutdown Task Scheduler</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #2d3748;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #4a5568;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .status-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 12px;
+            border-left: 4px solid;
+        }
+        
+        .status-pending { border-left-color: #ed8936; }
+        .status-running { border-left-color: #4299e1; }
+        .status-completed { border-left-color: #48bb78; }
+        .status-suspended { border-left-color: #9f7aea; }
+        .status-failed { border-left-color: #f56565; }
+        
+        .status-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        
+        .status-label {
+            font-size: 0.875rem;
+            color: #718096;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0.25rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(66, 153, 225, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+        }
+        
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-online { background-color: #48bb78; }
+        .status-offline { background-color: #f56565; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .task-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .task-item {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid #e2e8f0;
+        }
+        
+        .task-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .task-progress {
+            background: #e2e8f0;
+            border-radius: 4px;
+            height: 6px;
+            margin: 0.5rem 0;
+            overflow: hidden;
+        }
+        
+        .task-progress-bar {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        .alerts {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+        }
+        
+        .alert {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
+            min-width: 300px;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .alert-success { border-left-color: #48bb78; }
+        .alert-warning { border-left-color: #ed8936; }
+        .alert-error { border-left-color: #f56565; }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Graceful Shutdown Task Scheduler</h1>
+            <p>Ultra-scalable task scheduling with robust shutdown mechanisms</p>
+        </div>
+        
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>System Status</h3>
+                <div class="system-status">
+                    <div class="status-indicator status-online" id="systemIndicator"></div>
+                    <span id="systemStatusText">Online</span>
+                </div>
+                <div>
+                    <strong>Accepting New Tasks:</strong> 
+                    <span id="acceptingTasks">Yes</span>
+                </div>
+                <div>
+                    <strong>Shutdown Initiated:</strong> 
+                    <span id="shutdownStatus">No</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Task Statistics</h3>
+                <div class="status-grid">
+                    <div class="status-item status-pending">
+                        <div class="status-number" id="pendingCount">0</div>
+                        <div class="status-label">Pending</div>
+                    </div>
+                    <div class="status-item status-running">
+                        <div class="status-number" id="runningCount">0</div>
+                        <div class="status-label">Running</div>
+                    </div>
+                    <div class="status-item status-completed">
+                        <div class="status-number" id="completedCount">0</div>
+                        <div class="status-label">Completed</div>
+                    </div>
+                    <div class="status-item status-suspended">
+                        <div class="status-number" id="suspendedCount">0</div>
+                        <div class="status-label">Suspended</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Actions</h3>
+                <button class="btn btn-success" onclick="createDemoScenario()">
+                    🚀 Create Demo Scenario
+                </button>
+                <button class="btn btn-danger" onclick="initiateShutdown()">
+                    🛑 Initiate Graceful Shutdown
+                </button>
+                <button class="btn" onclick="refreshData()">
+                    🔄 Refresh Data
+                </button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Active Tasks</h3>
+            <div class="task-list" id="taskList">
+                <p>No tasks found. Create a demo scenario to see tasks in action!</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="alerts" id="alerts"></div>
+    
+    <script>
+        let refreshInterval;
+        
+        function showAlert(message, type = 'success') {
+            const alertsContainer = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            
+            alertsContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 5000);
+        }
+        
+        async function fetchData(url, options = {}) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showAlert(`Error: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+        
+        async function refreshData() {
+            try {
+                const [statusData, tasksData] = await Promise.all([
+                    fetchData('/api/tasks/status'),
+                    fetchData('/api/tasks')
+                ]);
+                
+                updateSystemStatus(statusData);
+                updateTaskList(tasksData);
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+            }
+        }
+        
+        function updateSystemStatus(data) {
+            const indicator = document.getElementById('systemIndicator');
+            const statusText = document.getElementById('systemStatusText');
+            const acceptingTasks = document.getElementById('acceptingTasks');
+            const shutdownStatus = document.getElementById('shutdownStatus');
+            
+            if (data.acceptingNewTasks) {
+                indicator.className = 'status-indicator status-online';
+                statusText.textContent = 'Online';
+            } else {
+                indicator.className = 'status-indicator status-offline';
+                statusText.textContent = 'Shutting Down';
+            }
+            
+            acceptingTasks.textContent = data.acceptingNewTasks ? 'Yes' : 'No';
+            shutdownStatus.textContent = data.shutdownInitiated ? 'Yes' : 'No';
+            
+            // Update task counts
+            const counts = data.taskCounts || {};
+            document.getElementById('pendingCount').textContent = counts.pending || 0;
+            document.getElementById('runningCount').textContent = counts.running || 0;
+            document.getElementById('completedCount').textContent = counts.completed || 0;
+            document.getElementById('suspendedCount').textContent = counts.suspended || 0;
+        }
+        
+        function updateTaskList(tasks) {
+            const taskList = document.getElementById('taskList');
+            
+            if (!tasks || tasks.length === 0) {
+                taskList.innerHTML = '<p>No tasks found. Create a demo scenario to see tasks in action!</p>';
+                return;
+            }
+            
+            taskList.innerHTML = tasks.map(task => `
+                <div class="task-item">
+                    <div class="task-name">${task.name}</div>
+                    <div style="font-size: 0.875rem; color: #718096;">${task.description}</div>
+                    <div class="task-progress">
+                        <div class="task-progress-bar" style="width: ${task.progressPercentage}%"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+                        <span>Status: <strong>${task.status}</strong></span>
+                        <span>Progress: ${task.progressPercentage}%</span>
+                        <span>Duration: ${task.durationSeconds}s</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function createDemoScenario() {
+            try {
+                const result = await fetchData('/api/tasks/demo-scenario', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                showAlert('Demo scenario created! 5 tasks with varying durations started.', 'success');
+                refreshData();
+                
+                // Start auto-refresh
+                if (refreshInterval) clearInterval(refreshInterval);
+                refreshInterval = setInterval(refreshData, 2000);
+                
+            } catch (error) {
+                showAlert('Failed to create demo scenario', 'error');
+            }
+        }
+        
+        async function initiateShutdown() {
+            if (!confirm('Are you sure you want to initiate graceful shutdown? This will stop accepting new tasks.')) {
+                return;
+            }
+            
+            try {
+                const result = await fetchData('/api/tasks/shutdown', {
+                    method: 'POST'
+                });
+                
+                showAlert('Graceful shutdown initiated! Watch as tasks complete or get suspended.', 'warning');
+                refreshData();
+                
+            } catch (error) {
+                showAlert('Failed to initiate shutdown', 'error');
+            }
+        }
+        
+        // Initialize dashboard
+        refreshData();
+        
+        // Set up periodic refresh
+        refreshInterval = setInterval(refreshData, 5000);
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (refreshInterval) clearInterval(refreshInterval);
+        });
+    </script>
+</body>
+</html>
