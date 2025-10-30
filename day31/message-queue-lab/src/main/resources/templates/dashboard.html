@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Queue Lab Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-color: #1f2937;
+            --light-bg: #f8fafc;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--light-bg) 0%, #e2e8f0 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #4338ca 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-bottom: 2px solid #e2e8f0;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 1.25rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #4338ca 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+        }
+        
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            padding: 0.75rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-online {
+            background-color: var(--success-color);
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+        }
+        
+        .alert {
+            border: none;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .kafka-section {
+            border-left: 4px solid #ff6b35;
+        }
+        
+        .rabbitmq-section {
+            border-left: 4px solid #ff6600;
+        }
+        
+        .monitoring-links {
+            background: linear-gradient(135deg, var(--dark-color) 0%, #374151 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .monitoring-links a {
+            color: #93c5fd;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .monitoring-links a:hover {
+            color: #60a5fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-0"><i class="fas fa-exchange-alt me-3"></i>Message Queue Lab Dashboard</h1>
+                    <p class="mb-0 mt-2 opacity-75">Day 31: Introduction to Message Queues (Kafka/RabbitMQ)</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <span class="status-indicator status-online"></span>
+                    <span>System Online</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Monitoring Links -->
+            <div class="col-12 mb-4">
+                <div class="monitoring-links">
+                    <h5 class="mb-3"><i class="fas fa-chart-line me-2"></i>Monitoring & Management</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <a href="http://localhost:8080" target="_blank" class="d-block">
+                                <i class="fas fa-tachometer-alt me-2"></i>Kafka UI Dashboard
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="http://localhost:15672" target="_blank" class="d-block">
+                                <i class="fas fa-cog me-2"></i>RabbitMQ Management
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="#" onclick="refreshLogs()" class="d-block">
+                                <i class="fas fa-file-alt me-2"></i>Application Logs
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Kafka Section -->
+            <div class="col-md-6">
+                <div class="card kafka-section">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-stream me-2"></i>Apache Kafka Producer</h5>
+                        <small class="text-muted">High-throughput distributed streaming platform</small>
+                    </div>
+                    <div class="card-body">
+                        <form id="kafkaForm">
+                            <div class="mb-3">
+                                <label for="kafkaTopic" class="form-label">Topic</label>
+                                <select class="form-control" id="kafkaTopic" required>
+                                    <option value="task-submission">task-submission</option>
+                                    <option value="task-execution">task-execution</option>
+                                    <option value="task-result">task-result</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="kafkaTaskType" class="form-label">Task Type</label>
+                                <select class="form-control" id="kafkaTaskType" required>
+                                    <option value="EMAIL_NOTIFICATION">Email Notification</option>
+                                    <option value="DATA_PROCESSING">Data Processing</option>
+                                    <option value="REPORT_GENERATION">Report Generation</option>
+                                    <option value="FILE_CLEANUP">File Cleanup</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="kafkaPayload" class="form-label">Payload</label>
+                                <textarea class="form-control" id="kafkaPayload" rows="3" 
+                                        placeholder="Enter task payload..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-paper-plane me-2"></i>Send to Kafka
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- RabbitMQ Section -->
+            <div class="col-md-6">
+                <div class="card rabbitmq-section">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-exchange-alt me-2"></i>RabbitMQ Producer</h5>
+                        <small class="text-muted">Reliable message broker with advanced routing</small>
+                    </div>
+                    <div class="card-body">
+                        <form id="rabbitmqForm">
+                            <div class="mb-3">
+                                <label for="rabbitmqRoutingKey" class="form-label">Routing Key</label>
+                                <select class="form-control" id="rabbitmqRoutingKey" required>
+                                    <option value="task.submission">task.submission</option>
+                                    <option value="task.execution">task.execution</option>
+                                    <option value="task.result">task.result</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="rabbitmqTaskType" class="form-label">Task Type</label>
+                                <select class="form-control" id="rabbitmqTaskType" required>
+                                    <option value="EMAIL_NOTIFICATION">Email Notification</option>
+                                    <option value="DATA_PROCESSING">Data Processing</option>
+                                    <option value="REPORT_GENERATION">Report Generation</option>
+                                    <option value="FILE_CLEANUP">File Cleanup</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="rabbitmqPayload" class="form-label">Payload</label>
+                                <textarea class="form-control" id="rabbitmqPayload" rows="3" 
+                                        placeholder="Enter task payload..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-paper-plane me-2"></i>Send to RabbitMQ
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Section -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-terminal me-2"></i>Message Results</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="results" class="bg-light p-3 rounded" style="min-height: 200px; font-family: monospace;">
+                            <p class="text-muted">Send messages using the forms above to see results here...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            const colorClass = type === 'success' ? 'text-success' : type === 'error' ? 'text-danger' : 'text-info';
+            const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            
+            results.innerHTML += `<div class="${colorClass}"><i class="fas ${icon} me-2"></i>[${timestamp}] ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+
+        document.getElementById('kafkaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('topic', document.getElementById('kafkaTopic').value);
+            formData.append('taskType', document.getElementById('kafkaTaskType').value);
+            formData.append('payload', document.getElementById('kafkaPayload').value);
+            
+            try {
+                const response = await fetch('/api/kafka/send', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.text();
+                addResult(`Kafka: ${result}`, response.ok ? 'success' : 'error');
+                if (response.ok) document.getElementById('kafkaForm').reset();
+            } catch (error) {
+                addResult(`Kafka Error: ${error.message}`, 'error');
+            }
+        });
+
+        document.getElementById('rabbitmqForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('routingKey', document.getElementById('rabbitmqRoutingKey').value);
+            formData.append('taskType', document.getElementById('rabbitmqTaskType').value);
+            formData.append('payload', document.getElementById('rabbitmqPayload').value);
+            
+            try {
+                const response = await fetch('/api/rabbitmq/send', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.text();
+                addResult(`RabbitMQ: ${result}`, response.ok ? 'success' : 'error');
+                if (response.ok) document.getElementById('rabbitmqForm').reset();
+            } catch (error) {
+                addResult(`RabbitMQ Error: ${error.message}`, 'error');
+            }
+        });
+
+        function refreshLogs() {
+            addResult('Logs refreshed - check console for detailed application logs', 'info');
+        }
+
+        // Initial welcome message
+        window.addEventListener('load', () => {
+            addResult('Message Queue Lab Dashboard loaded successfully!', 'success');
+            addResult('Ready to send messages to Kafka and RabbitMQ', 'info');
+        });
+    </script>
+</body>
+</html>
