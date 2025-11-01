@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler Dashboard</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>🚀 Task Scheduler Dashboard</h1>
+            <div class="header-info">
+                <span class="timestamp" id="currentTime"></span>
+                <div class="status-indicator active" id="systemStatus">
+                    <span class="status-dot"></span>
+                    System Online
+                </div>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card scheduled">
+                <div class="stat-icon">⏰</div>
+                <div class="stat-content">
+                    <h3>Scheduled</h3>
+                    <div class="stat-number" id="scheduledCount">0</div>
+                    <div class="stat-label">awaiting execution</div>
+                </div>
+            </div>
+
+            <div class="stat-card queued">
+                <div class="stat-icon">📬</div>
+                <div class="stat-content">
+                    <h3>Queued</h3>
+                    <div class="stat-number" id="queuedCount">0</div>
+                    <div class="stat-label">in message queue</div>
+                </div>
+            </div>
+
+            <div class="stat-card processing">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-content">
+                    <h3>Processing</h3>
+                    <div class="stat-number" id="processingCount">0</div>
+                    <div class="stat-label">being executed</div>
+                </div>
+            </div>
+
+            <div class="stat-card completed">
+                <div class="stat-icon">✅</div>
+                <div class="stat-content">
+                    <h3>Completed</h3>
+                    <div class="stat-number" id="completedCount">0</div>
+                    <div class="stat-label">successfully done</div>
+                </div>
+            </div>
+
+            <div class="stat-card failed">
+                <div class="stat-icon">❌</div>
+                <div class="stat-content">
+                    <h3>Failed</h3>
+                    <div class="stat-number" id="failedCount">0</div>
+                    <div class="stat-label">need attention</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="chart-container">
+                <h2>Task Status Distribution</h2>
+                <canvas id="statusChart"></canvas>
+            </div>
+
+            <div class="actions-panel">
+                <h2>Quick Actions</h2>
+                <button class="action-btn demo-btn" onclick="createSampleTasks()">
+                    🎯 Create Sample Tasks
+                </button>
+                <button class="action-btn refresh-btn" onclick="refreshData()">
+                    🔄 Refresh Data
+                </button>
+                <div class="demo-info">
+                    <p>Click "Create Sample Tasks" to generate demo tasks with different priorities and execution times.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tasks-section">
+            <div class="section-header">
+                <h2>Recent Tasks</h2>
+                <div class="view-controls">
+                    <button class="view-btn active" onclick="showTasks()">📋 All Tasks</button>
+                    <button class="view-btn" onclick="showExecutions()">⚡ Executions</button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <div id="tasksView" class="table-view">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Task ID</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Priority</th>
+                                <th>Created</th>
+                                <th>Scheduled</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tasksTableBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="executionsView" class="table-view" style="display: none;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Execution ID</th>
+                                <th>Task ID</th>
+                                <th>Worker</th>
+                                <th>Status</th>
+                                <th>Start Time</th>
+                                <th>Duration</th>
+                                <th>Result</th>
+                            </tr>
+                        </thead>
+                        <tbody id="executionsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
