@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Consumer Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-cogs"></i> Task Consumer Dashboard</h1>
+                <div class="worker-info">
+                    <span class="worker-id">Worker: <strong th:text="${workerId}">worker-id</strong></span>
+                    <div class="status-indicator active"></div>
+                </div>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="stat-icon"><i class="fas fa-tasks"></i></div>
+                <div class="stat-content">
+                    <div class="stat-number" th:text="${processedCount}">0</div>
+                    <div class="stat-label">Tasks Processed</div>
+                </div>
+            </div>
+
+            <div class="stat-card queued">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-content">
+                    <div class="stat-number" th:text="${statusCounts.QUEUED}">0</div>
+                    <div class="stat-label">Queued</div>
+                </div>
+            </div>
+
+            <div class="stat-card processing">
+                <div class="stat-icon"><i class="fas fa-spinner"></i></div>
+                <div class="stat-content">
+                    <div class="stat-number" th:text="${statusCounts.PROCESSING}">0</div>
+                    <div class="stat-label">Processing</div>
+                </div>
+            </div>
+
+            <div class="stat-card completed">
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-content">
+                    <div class="stat-number" th:text="${statusCounts.COMPLETED}">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+
+            <div class="stat-card failed">
+                <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="stat-content">
+                    <div class="stat-number" th:text="${statusCounts.FAILED}">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h2><i class="fas fa-chart-pie"></i> Task Distribution</h2>
+            <canvas id="taskChart"></canvas>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <h2><i class="fas fa-list"></i> Recent Tasks</h2>
+                <button class="refresh-btn" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            
+            <div class="table-wrapper">
+                <table class="tasks-table">
+                    <thead>
+                        <tr>
+                            <th>Task ID</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Worker</th>
+                            <th>Created</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="task : ${tasks}" th:class="${task.status.name().toLowerCase()}">
+                            <td>
+                                <span class="task-id" th:text="${task.taskId}">task-123</span>
+                            </td>
+                            <td>
+                                <span class="task-type" th:text="${task.taskType}">email</span>
+                            </td>
+                            <td>
+                                <span class="status-badge" th:class="${task.status.name().toLowerCase()}" th:text="${task.status}">COMPLETED</span>
+                            </td>
+                            <td>
+                                <span class="worker-badge" th:text="${task.workerId ?: 'N/A'}">worker-123</span>
+                            </td>
+                            <td>
+                                <span class="timestamp" th:text="${#temporals.format(task.createdAt, 'HH:mm:ss')}">12:34:56</span>
+                            </td>
+                            <td>
+                                <span class="duration" th:if="${task.startTime != null and task.completedTime != null}" th:text="${T(java.time.Duration).between(task.startTime, task.completedTime).toMillis() + 'ms'}">2.5s</span>
+                                <span class="duration" th:unless="${task.startTime != null and task.completedTime != null}">-</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+    <script th:inline="javascript">
+        const statusData = /*[[${statusCounts}]]*/ {};
+        initializeCharts(statusData);
+    </script>
+</body>
+</html>
