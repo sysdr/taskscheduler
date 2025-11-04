@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Consumer Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>🚀 Task Consumer Dashboard</h1>
+            <div class="status-indicator" id="statusIndicator">
+                <span class="status-dot"></span>
+                <span class="status-text">Connected</span>
+            </div>
+        </header>
+
+        <div class="metrics-grid">
+            <div class="metric-card success">
+                <div class="metric-icon">✅</div>
+                <div class="metric-content">
+                    <h3>Successful Tasks</h3>
+                    <div class="metric-value" id="successfulTasks">0</div>
+                    <div class="metric-change" id="successfulChange">+0</div>
+                </div>
+            </div>
+
+            <div class="metric-card failed">
+                <div class="metric-icon">❌</div>
+                <div class="metric-content">
+                    <h3>Failed Tasks</h3>
+                    <div class="metric-value" id="failedTasks">0</div>
+                    <div class="metric-change" id="failedChange">+0</div>
+                </div>
+            </div>
+
+            <div class="metric-card retry">
+                <div class="metric-icon">🔄</div>
+                <div class="metric-content">
+                    <h3>Retried Tasks</h3>
+                    <div class="metric-value" id="retriedTasks">0</div>
+                    <div class="metric-change" id="retriedChange">+0</div>
+                </div>
+            </div>
+
+            <div class="metric-card timing">
+                <div class="metric-icon">⏱️</div>
+                <div class="metric-content">
+                    <h3>Avg Processing Time</h3>
+                    <div class="metric-value" id="avgProcessingTime">0ms</div>
+                    <div class="metric-change" id="timingChange">+0ms</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-section">
+            <div class="chart-container">
+                <h3>Task Processing Over Time</h3>
+                <div class="chart-wrapper">
+                    <canvas id="tasksChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3>Success Rate Distribution</h3>
+                <div class="chart-wrapper">
+                    <canvas id="successRateChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="logs-section">
+            <h3>Recent Activity</h3>
+            <div class="logs-container" id="logsContainer">
+                <div class="log-entry info">
+                    <span class="log-timestamp">12:00:00</span>
+                    <span class="log-message">Consumer service started successfully</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

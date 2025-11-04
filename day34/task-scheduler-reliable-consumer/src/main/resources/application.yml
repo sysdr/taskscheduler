@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: task-scheduler-reliable-consumer
+  
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: task-consumer-group
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      max-poll-records: 10
+    producer:
+      acks: all
+      retries: 3
+      enable-idempotence: true
+
+  thymeleaf:
+    cache: false
+
+server:
+  port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    com.taskscheduler.consumer: DEBUG
+    org.springframework.kafka: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
