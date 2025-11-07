@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horizontal Scaling Monitor</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Task Consumer Scaling Dashboard</h1>
+            <p class="subtitle">Real-time monitoring of horizontally scaled consumers</p>
+        </header>
+
+        <div id="demoBanner" class="info-banner">Showing demo metrics while services warm up...</div>
+        
+        <div class="metrics-grid">
+            <div class="metric-card produced">
+                <div class="metric-icon">📤</div>
+                <div class="metric-content">
+                    <div class="metric-label">Tasks Produced</div>
+                    <div class="metric-value" id="totalProduced">0</div>
+                </div>
+            </div>
+            
+            <div class="metric-card completed">
+                <div class="metric-icon">✅</div>
+                <div class="metric-content">
+                    <div class="metric-label">Tasks Completed</div>
+                    <div class="metric-value" id="totalCompleted">0</div>
+                </div>
+            </div>
+            
+            <div class="metric-card queue">
+                <div class="metric-icon">⏳</div>
+                <div class="metric-content">
+                    <div class="metric-label">Queue Depth</div>
+                    <div class="metric-value" id="queueDepth">0</div>
+                </div>
+            </div>
+            
+            <div class="metric-card throughput">
+                <div class="metric-icon">⚡</div>
+                <div class="metric-content">
+                    <div class="metric-label">Throughput</div>
+                    <div class="metric-value" id="throughput">0<span class="unit">/sec</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="consumers-section">
+            <h2>Active Consumers</h2>
+            <div id="consumersContainer" class="consumers-grid"></div>
+        </div>
+        
+        <div class="chart-section">
+            <h2>Processing Distribution</h2>
+            <canvas id="distributionChart"></canvas>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" onclick="produceTasks(10)">Produce 10 Tasks</button>
+            <button class="btn btn-primary" onclick="produceTasks(50)">Produce 50 Tasks</button>
+            <button class="btn btn-primary" onclick="produceTasks(100)">Produce 100 Tasks</button>
+            <button class="btn btn-secondary" onclick="resetStats()">Reset Stats</button>
+        </div>
+    </div>
+    
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
