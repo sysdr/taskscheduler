@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: task-priority-scheduler
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+scheduler:
+  priority:
+    high-priority-batch-size: 10
+    starvation-prevention-enabled: true

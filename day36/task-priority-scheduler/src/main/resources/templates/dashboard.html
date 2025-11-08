@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Priority Scheduler Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #2d3748;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #718096;
+            font-size: 16px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .priority-high {
+            background: #fee;
+            color: #c53030;
+        }
+        
+        .priority-normal {
+            background: #fef5e7;
+            color: #d68910;
+        }
+        
+        .priority-low {
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .metric:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            color: #718096;
+            font-size: 14px;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: #4a5568;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-high {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn-normal {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            color: #2d3748;
+        }
+        
+        .btn-low {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .status-message {
+            margin-top: 20px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+        }
+
+        .status-item {
+            background: rgba(102, 126, 234, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .status-label {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #4a5568;
+            text-transform: uppercase;
+        }
+
+        .status-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a202c;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            width: fit-content;
+        }
+
+        .status-pill.status-good {
+            background: rgba(72, 187, 120, 0.15);
+            color: #2f855a;
+        }
+
+        .status-pill.status-warn {
+            background: rgba(251, 211, 141, 0.2);
+            color: #b7791f;
+        }
+
+        .status-pill.status-risk {
+            background: rgba(254, 178, 178, 0.25);
+            color: #c53030;
+        }
+
+        .grid-secondary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .tasks-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .tasks-table th,
+        .tasks-table td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 14px;
+            color: #2d3748;
+        }
+
+        .tasks-table th {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: #718096;
+        }
+
+        .tasks-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .priority-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+
+        .priority-chip.high {
+            background: rgba(254, 215, 215, 0.6);
+            color: #c53030;
+        }
+
+        .priority-chip.normal {
+            background: rgba(254, 235, 200, 0.6);
+            color: #b7791f;
+        }
+
+        .priority-chip.low {
+            background: rgba(198, 246, 255, 0.6);
+            color: #3182ce;
+        }
+
+        .insights-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .insights-list li {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 14px;
+            color: #2d3748;
+            box-shadow: inset 0 0 0 1px rgba(102, 126, 234, 0.12);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+            padding: 18px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Task Priority Scheduler</h1>
+            <p class="subtitle">Day 36: Multi-Queue Priority System with Starvation Prevention</p>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h2 class="card-title">
+                    High Priority Queue
+                    <span class="priority-badge priority-high">CRITICAL</span>
+                </h2>
+                <div class="metric">
+                    <span class="metric-label">Tasks Submitted</span>
+                    <span class="metric-value" id="highSubmitted">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Queue Depth</span>
+                    <span class="metric-value" id="highQueue">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Avg Processing Time</span>
+                    <span class="metric-value" id="highTime">0ms</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Throughput (tasks/min)</span>
+                    <span class="metric-value" id="highThroughput">0</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">
+                    Normal Priority Queue
+                    <span class="priority-badge priority-normal">STANDARD</span>
+                </h2>
+                <div class="metric">
+                    <span class="metric-label">Tasks Submitted</span>
+                    <span class="metric-value" id="normalSubmitted">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Queue Depth</span>
+                    <span class="metric-value" id="normalQueue">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Avg Processing Time</span>
+                    <span class="metric-value" id="normalTime">0ms</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Throughput (tasks/min)</span>
+                    <span class="metric-value" id="normalThroughput">0</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">
+                    Low Priority Queue
+                    <span class="priority-badge priority-low">BACKGROUND</span>
+                </h2>
+                <div class="metric">
+                    <span class="metric-label">Tasks Submitted</span>
+                    <span class="metric-value" id="lowSubmitted">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Queue Depth</span>
+                    <span class="metric-value" id="lowQueue">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Avg Processing Time</span>
+                    <span class="metric-value" id="lowTime">0ms</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Throughput (tasks/min)</span>
+                    <span class="metric-value" id="lowThroughput">0</span>
+                </div>
+            </div>
+            <div class="card">
+                <h2 class="card-title">System Health</h2>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="status-label">Overall</span>
+                        <span class="status-pill" id="statusOverall">Loading</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Success Rate</span>
+                        <span class="status-value" id="statusSuccessRate">—</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Worker Utilization</span>
+                        <span class="status-value" id="statusUtilization">—</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Backlog Ratio</span>
+                        <span class="status-value" id="statusBacklog">—</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Last Updated</span>
+                        <span class="status-value" id="statusUpdatedAt">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="control-panel">
+            <h2 class="card-title">📋 Task Submission Control</h2>
+            
+            <div class="form-group">
+                <label for="taskName">Task Name</label>
+                <input type="text" id="taskName" placeholder="Enter task name">
+            </div>
+            
+            <div class="form-group">
+                <label for="taskPayload">Task Payload</label>
+                <input type="text" id="taskPayload" placeholder="Enter task details">
+            </div>
+            
+            <div class="form-group">
+                <label for="taskPriority">Priority Level</label>
+                <select id="taskPriority">
+                    <option value="HIGH">High Priority</option>
+                    <option value="NORMAL" selected>Normal Priority</option>
+                    <option value="LOW">Low Priority</option>
+                </select>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn-high" onclick="submitTask()">Submit Single Task</button>
+                <button class="btn-normal" onclick="submitBulk(100, 'LOW')">Submit 100 Low</button>
+                <button class="btn-low" onclick="submitBulk(50, 'HIGH')">Submit 50 High</button>
+            </div>
+            
+            <div id="statusMessage" class="status-message"></div>
+        </div>
+
+        <div class="grid-secondary">
+            <div class="card">
+                <h2 class="card-title">Recent Activity</h2>
+                <table class="tasks-table">
+                    <thead>
+                        <tr>
+                            <th>Task</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Submitted</th>
+                            <th>Processing</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentTasksBody">
+                        <tr>
+                            <td class="empty-state" colspan="5">Loading activity…</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Operational Highlights</h2>
+                <ul class="insights-list" id="insightsList">
+                    <li>Loading highlights…</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let taskCounts = { HIGH: 0, NORMAL: 0, LOW: 0 };
+        let demoSnapshot = null;
+
+        async function loadDemoData() {
+            try {
+                const response = await fetch('/api/dashboard/demo');
+                if (!response.ok) {
+                    throw new Error(`Failed to load demo data (${response.status})`);
+                }
+
+                const data = await response.json();
+                demoSnapshot = data;
+
+                taskCounts = {
+                    HIGH: data.submittedCounts?.HIGH ?? data.submittedCounts?.high ?? 0,
+                    NORMAL: data.submittedCounts?.NORMAL ?? data.submittedCounts?.normal ?? 0,
+                    LOW: data.submittedCounts?.LOW ?? data.submittedCounts?.low ?? 0
+                };
+
+                applyDemoSnapshot(data);
+                updateMetrics();
+            } catch (error) {
+                console.error('Error loading demo data:', error);
+            }
+        }
+
+        function applyDemoSnapshot(data) {
+            setText('highSubmitted', taskCounts.HIGH);
+            setText('normalSubmitted', taskCounts.NORMAL);
+            setText('lowSubmitted', taskCounts.LOW);
+
+            const queueDepths = data.queueDepths || {};
+            setText('highQueue', queueDepths.HIGH ?? queueDepths.high ?? 0);
+            setText('normalQueue', queueDepths.NORMAL ?? queueDepths.normal ?? 0);
+            setText('lowQueue', queueDepths.LOW ?? queueDepths.low ?? 0);
+
+            const avgTimes = data.avgProcessingTimes || {};
+            setText('highTime', formatMillis(avgTimes.HIGH ?? avgTimes.high));
+            setText('normalTime', formatMillis(avgTimes.NORMAL ?? avgTimes.normal));
+            setText('lowTime', formatMillis(avgTimes.LOW ?? avgTimes.low));
+
+            const throughput = data.throughputRates || {};
+            setText('highThroughput', formatThroughput(throughput.HIGH ?? throughput.high));
+            setText('normalThroughput', formatThroughput(throughput.NORMAL ?? throughput.normal));
+            setText('lowThroughput', formatThroughput(throughput.LOW ?? throughput.low));
+
+            renderSystemStatus(data.systemStatus);
+            renderRecentTasks(data.recentTasks || []);
+            renderHighlights(data.highlights || []);
+        }
+
+        async function submitTask() {
+            const task = {
+                name: document.getElementById('taskName').value || 'Unnamed Task',
+                payload: document.getElementById('taskPayload').value || 'Default payload',
+                priority: document.getElementById('taskPriority').value
+            };
+
+            try {
+                const response = await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(task)
+                });
+
+                const result = await response.json();
+                showStatus(`Task submitted: ${result.taskId}`, 'success');
+                taskCounts[task.priority]++;
+                prependRecentTask({
+                    name: task.name,
+                    priority: task.priority,
+                    status: 'QUEUED',
+                    submittedAgo: 'just now',
+                    processingTime: 'pending dispatch'
+                });
+                updateMetrics();
+            } catch (error) {
+                showStatus('Error submitting task: ' + error.message, 'error');
+            }
+        }
+
+        async function submitBulk(count, priority) {
+            try {
+                const response = await fetch(`/api/tasks/bulk?count=${count}&priority=${priority}`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+                showStatus(`${result.submitted} ${priority} priority tasks submitted`, 'success');
+                taskCounts[priority] += count;
+                updateMetrics();
+            } catch (error) {
+                showStatus('Error submitting bulk tasks: ' + error.message, 'error');
+            }
+        }
+
+        async function updateMetrics() {
+            setText('highSubmitted', taskCounts.HIGH);
+            setText('normalSubmitted', taskCounts.NORMAL);
+            setText('lowSubmitted', taskCounts.LOW);
+
+            try {
+                const response = await fetch('/api/tasks/metrics');
+                const metrics = await response.json();
+
+                setText('highQueue', metrics.highPriorityQueueDepth ?? 0);
+                setText('normalQueue', metrics.normalPriorityQueueDepth ?? 0);
+                setText('lowQueue', metrics.lowPriorityQueueDepth ?? 0);
+            } catch (error) {
+                console.error('Error fetching metrics:', error);
+            }
+        }
+
+        function renderSystemStatus(status) {
+            const overallEl = document.getElementById('statusOverall');
+            overallEl.classList.remove('status-good', 'status-warn', 'status-risk');
+
+            if (!status) {
+                overallEl.textContent = 'No data';
+                setText('statusSuccessRate', '—');
+                setText('statusUtilization', '—');
+                setText('statusBacklog', '—');
+                setText('statusUpdatedAt', '—');
+                return;
+            }
+
+            const successRate = status.successRate ?? 0;
+            overallEl.textContent = status.overall || '—';
+
+            if (successRate >= 0.97) {
+                overallEl.classList.add('status-good');
+            } else if (successRate >= 0.9) {
+                overallEl.classList.add('status-warn');
+            } else {
+                overallEl.classList.add('status-risk');
+            }
+
+            setText('statusSuccessRate', formatPercent(successRate));
+            setText('statusUtilization', formatPercent(status.workerUtilization ?? 0));
+            setText('statusBacklog', formatPercent(status.backlogRatio ?? 0));
+            setText('statusUpdatedAt', status.updatedAt || '—');
+        }
+
+        function renderRecentTasks(tasks) {
+            const tbody = document.getElementById('recentTasksBody');
+            if (!tbody) {
+                return;
+            }
+
+            tbody.innerHTML = '';
+
+            if (!tasks.length) {
+                const row = document.createElement('tr');
+                row.classList.add('empty-row');
+                const cell = document.createElement('td');
+                cell.classList.add('empty-state');
+                cell.colSpan = 5;
+                cell.textContent = 'No activity yet';
+                row.appendChild(cell);
+                tbody.appendChild(row);
+                return;
+            }
+
+            tasks.forEach(task => {
+                tbody.appendChild(createTaskRow(task));
+            });
+        }
+
+        function prependRecentTask(task) {
+            const tbody = document.getElementById('recentTasksBody');
+            if (!tbody) {
+                return;
+            }
+
+            if (tbody.firstElementChild?.classList.contains('empty-row')) {
+                tbody.innerHTML = '';
+            }
+
+            tbody.prepend(createTaskRow(task));
+
+            const maxRows = 6;
+            while (tbody.children.length > maxRows) {
+                tbody.removeChild(tbody.lastChild);
+            }
+        }
+
+        function createTaskRow(task) {
+            const row = document.createElement('tr');
+            const priority = task.priority || 'NORMAL';
+            row.innerHTML = `
+                <td>${task.name || 'Unnamed task'}</td>
+                <td><span class="priority-chip ${priority.toLowerCase()}">${priority}</span></td>
+                <td>${task.status || 'UNKNOWN'}</td>
+                <td>${task.submittedAgo || '—'}</td>
+                <td>${task.processingTime || '—'}</td>
+            `;
+            return row;
+        }
+
+        function renderHighlights(items) {
+            const list = document.getElementById('insightsList');
+            if (!list) {
+                return;
+            }
+
+            list.innerHTML = '';
+
+            if (!items.length) {
+                const li = document.createElement('li');
+                li.textContent = 'No insights available yet.';
+                list.appendChild(li);
+                return;
+            }
+
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                list.appendChild(li);
+            });
+        }
+
+        function setText(id, value) {
+            const el = document.getElementById(id);
+            if (!el) {
+                return;
+            }
+            el.textContent = value ?? '—';
+        }
+
+        function formatMillis(value) {
+            if (value === null || value === undefined) {
+                return '—';
+            }
+            const numeric = Number(value);
+            if (Number.isNaN(numeric)) {
+                return value;
+            }
+            return `${Math.round(numeric)} ms`;
+        }
+
+        function formatThroughput(value) {
+            if (value === null || value === undefined) {
+                return '—';
+            }
+            const numeric = Number(value);
+            if (Number.isNaN(numeric)) {
+                return value;
+            }
+            return numeric.toFixed(1);
+        }
+
+        function formatPercent(value) {
+            const numeric = Number(value);
+            if (Number.isNaN(numeric)) {
+                return '—';
+            }
+            return `${(numeric * 100).toFixed(1)}%`;
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.style.display = 'block';
+
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        loadDemoData();
+        setInterval(updateMetrics, 2000);
+        updateMetrics();
+    </script>
+</body>
+</html>
