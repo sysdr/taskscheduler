@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Backpressure Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚦 Backpressure Task Scheduler</h1>
+            <p class="subtitle">Real-time Burst Handling & Flow Control</p>
+        </header>
+        
+        <div class="control-panel">
+            <div class="card">
+                <h3>Task Submission</h3>
+                <button onclick="submitSingleTask()" class="btn btn-primary">Submit Single Task</button>
+                <div class="burst-control">
+                    <input type="number" id="burstSize" value="1000" min="10" max="10000">
+                    <button onclick="submitBurst()" class="btn btn-warning">Submit Burst</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>Rate Limiter Control</h3>
+                <button onclick="toggleRateLimiter()" class="btn btn-secondary" id="rateLimiterBtn">
+                    Disable Rate Limiting
+                </button>
+                <p class="status-text" id="rateLimiterStatus">Status: Enabled (10 tasks/sec)</p>
+            </div>
+        </div>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="processedCount">0</div>
+                <div class="metric-label">Tasks Processed</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="throttledCount">0</div>
+                <div class="metric-label">Tasks Throttled</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="currentRate">0</div>
+                <div class="metric-label">Current Rate (tasks/sec)</div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="throughputChart"></canvas>
+        </div>
+        
+        <div class="logs">
+            <h3>Activity Log</h3>
+            <div id="logContainer"></div>
+        </div>
+    </div>
+    
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
