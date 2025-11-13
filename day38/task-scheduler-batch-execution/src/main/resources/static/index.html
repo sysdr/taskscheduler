@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Execution Dashboard - Day 38</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔄 Task Scheduler - Batch Execution</h1>
+            <p class="subtitle">Day 38: Processing Tasks in Batches for Maximum Efficiency</p>
+        </header>
+
+        <div class="controls-panel">
+            <h2>Task Generation</h2>
+            <div class="control-group">
+                <label for="taskCount">Number of Tasks:</label>
+                <input type="number" id="taskCount" value="500" min="10" max="10000">
+                
+                <label for="taskTypes">Task Types:</label>
+                <select id="taskTypes" multiple>
+                    <option value="EMAIL" selected>EMAIL</option>
+                    <option value="SMS" selected>SMS</option>
+                    <option value="PUSH" selected>PUSH</option>
+                    <option value="REPORT">REPORT</option>
+                </select>
+                
+                <button onclick="createBatchTasks()" class="btn-primary">Generate Tasks</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card pending">
+                <h3>Pending</h3>
+                <div class="stat-value" id="pendingCount">0</div>
+            </div>
+            <div class="stat-card processing">
+                <h3>Processing</h3>
+                <div class="stat-value" id="processingCount">0</div>
+            </div>
+            <div class="stat-card completed">
+                <h3>Completed</h3>
+                <div class="stat-value" id="completedCount">0</div>
+            </div>
+            <div class="stat-card failed">
+                <h3>Failed</h3>
+                <div class="stat-value" id="failedCount">0</div>
+            </div>
+            <div class="stat-card queue">
+                <h3>Queue Size</h3>
+                <div class="stat-value" id="queueSize">0</div>
+            </div>
+            <div class="stat-card avg-time">
+                <h3>Avg Time (ms)</h3>
+                <div class="stat-value" id="avgTime">0</div>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-wrapper">
+                <h3>Task Status Distribution</h3>
+                <canvas id="statusChart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <h3>Processing Rate (Tasks/sec)</h3>
+                <canvas id="throughputChart"></canvas>
+            </div>
+        </div>
+
+        <div class="recent-batches">
+            <h2>Recent Batches (Last 20)</h2>
+            <div class="batch-list" id="batchList">
+                <div class="loading">Loading batch data...</div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Day 38: Batching Task Executions | Batch Size: 100 | Timeout: 3s</p>
+        </footer>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

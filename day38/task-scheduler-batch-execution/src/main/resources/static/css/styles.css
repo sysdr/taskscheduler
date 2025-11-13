@@ -1,0 +1,254 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+.controls-panel {
+    padding: 30px;
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.controls-panel h2 {
+    color: #495057;
+    margin-bottom: 20px;
+}
+
+.control-group {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 15px;
+    align-items: center;
+    max-width: 800px;
+}
+
+.control-group label {
+    font-weight: 600;
+    color: #495057;
+}
+
+.control-group input,
+.control-group select {
+    padding: 10px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 1em;
+}
+
+.control-group select {
+    height: 100px;
+}
+
+.btn-primary {
+    grid-column: 2;
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 30px;
+}
+
+.stat-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid;
+}
+
+.stat-card h3 {
+    color: #6c757d;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-size: 2.5em;
+    font-weight: bold;
+}
+
+.stat-card.pending {
+    border-left-color: #ffc107;
+}
+
+.stat-card.pending .stat-value {
+    color: #ffc107;
+}
+
+.stat-card.processing {
+    border-left-color: #17a2b8;
+}
+
+.stat-card.processing .stat-value {
+    color: #17a2b8;
+}
+
+.stat-card.completed {
+    border-left-color: #28a745;
+}
+
+.stat-card.completed .stat-value {
+    color: #28a745;
+}
+
+.stat-card.failed {
+    border-left-color: #dc3545;
+}
+
+.stat-card.failed .stat-value {
+    color: #dc3545;
+}
+
+.stat-card.queue {
+    border-left-color: #6f42c1;
+}
+
+.stat-card.queue .stat-value {
+    color: #6f42c1;
+}
+
+.stat-card.avg-time {
+    border-left-color: #fd7e14;
+}
+
+.stat-card.avg-time .stat-value {
+    color: #fd7e14;
+}
+
+.charts-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 30px;
+    padding: 30px;
+    background: #f8f9fa;
+}
+
+.chart-wrapper {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.chart-wrapper h3 {
+    color: #495057;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.recent-batches {
+    padding: 30px;
+}
+
+.recent-batches h2 {
+    color: #495057;
+    margin-bottom: 20px;
+}
+
+.batch-list {
+    display: grid;
+    gap: 15px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.batch-item {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.batch-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.batch-info label {
+    font-size: 0.8em;
+    color: #6c757d;
+    text-transform: uppercase;
+}
+
+.batch-info value {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #495057;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+footer {
+    background: #343a40;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+@media (max-width: 768px) {
+    .control-group {
+        grid-template-columns: 1fr;
+    }
+    
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
+}
