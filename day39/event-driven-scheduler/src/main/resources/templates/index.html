@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event-Driven Task Scheduler</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Event-Driven Task Scheduler</h1>
+            <p class="subtitle">Real-time Event Processing Dashboard</p>
+        </header>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon">📁</div>
+                <div class="metric-value" id="fileEvents">0</div>
+                <div class="metric-label">File Events</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">👤</div>
+                <div class="metric-value" id="userEvents">0</div>
+                <div class="metric-label">User Events</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">⚙️</div>
+                <div class="metric-value" id="systemEvents">0</div>
+                <div class="metric-label">System Events</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">⚡</div>
+                <div class="metric-value" id="tasksTriggered">0</div>
+                <div class="metric-label">Tasks Triggered</div>
+            </div>
+            <div class="metric-card success">
+                <div class="metric-icon">✅</div>
+                <div class="metric-value" id="tasksCompleted">0</div>
+                <div class="metric-label">Tasks Completed</div>
+            </div>
+            <div class="metric-card danger">
+                <div class="metric-icon">❌</div>
+                <div class="metric-value" id="tasksFailed">0</div>
+                <div class="metric-label">Tasks Failed</div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>🧪 Event Simulator</h2>
+            <div class="button-grid">
+                <button class="demo-btn file-btn" onclick="triggerFileUpload()">
+                    📁 Simulate File Upload
+                </button>
+                <button class="demo-btn user-btn" onclick="triggerUserRegistration()">
+                    👤 Simulate User Registration
+                </button>
+                <button class="demo-btn system-btn" onclick="triggerSystemAlert()">
+                    ⚙️ Simulate System Alert
+                </button>
+                <button class="demo-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="generateDemoData()">
+                    🎲 Generate Demo Data (50 tasks)
+                </button>
+            </div>
+        </div>
+
+        <div class="charts-section">
+            <div class="chart-container">
+                <h3>Event Distribution</h3>
+                <canvas id="eventChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Task Status</h3>
+                <canvas id="taskChart"></canvas>
+            </div>
+        </div>
+
+        <div class="tasks-section">
+            <div class="section-header">
+                <h2>📋 Recent Tasks</h2>
+                <button class="refresh-btn" onclick="loadRecentTasks()">🔄 Refresh</button>
+            </div>
+            <div class="tasks-table-container">
+                <table class="tasks-table">
+                    <thead>
+                        <tr>
+                            <th>Task Name</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Event Type</th>
+                            <th>Execution Time</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tasksTableBody">
+                        <tr><td colspan="6" class="no-data">Loading tasks...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="event-log">
+            <h2>📝 Live Event Stream</h2>
+            <div id="eventLogContent" class="log-content"></div>
+        </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
