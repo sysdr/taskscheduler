@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  scheduler-service:
+    build: ./scheduler-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  payment-service:
+    build: ./payment-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SCHEDULER_URL=http://scheduler-service:8080
+    depends_on:
+      - scheduler-service
+
+  notification-service:
+    build: ./notification-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SCHEDULER_URL=http://scheduler-service:8080
+    depends_on:
+      - scheduler-service
+
+  dashboard:
+    image: nginx:alpine
+    ports:
+      - "8083:80"
+    volumes:
+      - ./dashboard/static:/usr/share/nginx/html
+    depends_on:
+      - scheduler-service

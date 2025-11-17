@@ -1,0 +1,9 @@
+logs/
+*.pid
+
+scheduler-service/target/
+payment-service/target/
+notification-service/target/
+
+dashboard/static/demo-config.json
+

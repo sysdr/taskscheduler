@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Tenant Scheduler Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Scheduler as a Service</h1>
+            <p class="subtitle">Multi-Tenant Task Scheduling Platform</p>
+        </header>
+        
+        <div class="tenant-section">
+            <h2>Tenant Registration</h2>
+            <div class="form-group">
+                <input type="text" id="tenantName" placeholder="Enter tenant name (e.g., Payment Service)">
+                <button onclick="registerTenant()">Register Tenant</button>
+            </div>
+            <div id="tenantInfo"></div>
+        </div>
+        
+        <div class="task-section">
+            <h2>Submit Task</h2>
+            <div class="form-group">
+                <input type="text" id="apiKey" placeholder="API Key">
+                <input type="text" id="taskName" placeholder="Task Name">
+                <textarea id="taskPayload" placeholder="Task Payload (JSON)"></textarea>
+                <input type="number" id="priority" placeholder="Priority (1-10)" value="5">
+                <button onclick="submitTask()">Submit Task</button>
+            </div>
+        </div>
+        
+        <div class="metrics-section">
+            <h2>System Metrics</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3 id="pendingCount">0</h3>
+                    <p>Pending</p>
+                </div>
+                <div class="metric-card">
+                    <h3 id="scheduledCount">0</h3>
+                    <p>Scheduled</p>
+                </div>
+                <div class="metric-card">
+                    <h3 id="runningCount">0</h3>
+                    <p>Running</p>
+                </div>
+                <div class="metric-card success">
+                    <h3 id="completedCount">0</h3>
+                    <p>Completed</p>
+                </div>
+                <div class="metric-card error">
+                    <h3 id="failedCount">0</h3>
+                    <p>Failed</p>
+                </div>
+                <div class="metric-card">
+                    <h3 id="totalCount">0</h3>
+                    <p>Total Tasks</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tasks-section">
+            <h2>Task List</h2>
+            <div class="task-controls">
+                <button onclick="loadTasks()">Refresh</button>
+                <select id="statusFilter" onchange="loadTasks()">
+                    <option value="">All Status</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="SCHEDULED">Scheduled</option>
+                    <option value="RUNNING">Running</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="FAILED">Failed</option>
+                </select>
+            </div>
+            <div id="tasksList"></div>
+        </div>
+    </div>
+    
+    <script src="js/app.js"></script>
+</body>
+</html>
