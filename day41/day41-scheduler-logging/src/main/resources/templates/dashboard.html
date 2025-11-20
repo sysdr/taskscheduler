@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheduler Logging Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            color: #94a3b8;
+            margin-top: 8px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+        }
+        
+        .stat-card h3 {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+        
+        .stat-card.success .value { color: #10b981; }
+        .stat-card.warning .value { color: #f59e0b; }
+        .stat-card.error .value { color: #ef4444; }
+        .stat-card.info .value { color: #3b82f6; }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background: #1e293b;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .panel-content {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        
+        .task-item, .log-item {
+            padding: 12px 20px;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .task-item:last-child, .log-item:last-child {
+            border-bottom: none;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        
+        .task-type {
+            font-weight: 600;
+            color: #f8fafc;
+        }
+        
+        .status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status.COMPLETED { background: #064e3b; color: #6ee7b7; }
+        .status.PENDING { background: #1e3a5f; color: #93c5fd; }
+        .status.RUNNING { background: #422006; color: #fcd34d; }
+        .status.FAILED { background: #450a0a; color: #fca5a5; }
+        .status.RETRYING { background: #3f3f46; color: #d4d4d8; }
+        
+        .task-meta {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        
+        .log-item {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        
+        .log-level {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .log-level.ERROR { background: #ef4444; color: white; }
+        .log-level.WARN { background: #f59e0b; color: black; }
+        .log-level.INFO { background: #3b82f6; color: white; }
+        .log-level.DEBUG { background: #6b7280; color: white; }
+        
+        .log-content {
+            flex: 1;
+        }
+        
+        .log-message {
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+        
+        .log-meta {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+        
+        .create-form {
+            padding: 20px;
+            background: #0f172a;
+            border-top: 1px solid #334155;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .form-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        select, input, textarea {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: #e2e8f0;
+            font-size: 0.9rem;
+        }
+        
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .refresh-btn {
+            background: #334155;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Scheduler Logging Dashboard</h1>
+        <p>Day 41: Comprehensive Structured Logging</p>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card info">
+            <h3>Total Tasks</h3>
+            <div class="value" th:text="${stats.totalTasks}">0</div>
+        </div>
+        <div class="stat-card success">
+            <h3>Completed</h3>
+            <div class="value" th:text="${stats.completedTasks}">0</div>
+        </div>
+        <div class="stat-card warning">
+            <h3>Pending</h3>
+            <div class="value" th:text="${stats.pendingTasks}">0</div>
+        </div>
+        <div class="stat-card error">
+            <h3>Failed</h3>
+            <div class="value" th:text="${stats.failedTasks}">0</div>
+        </div>
+        <div class="stat-card info">
+            <h3>Avg Time (ms)</h3>
+            <div class="value" th:text="${stats.avgExecutionTimeMs}">0</div>
+        </div>
+        <div class="stat-card error">
+            <h3>Error Logs</h3>
+            <div class="value" th:text="${stats.errorLogs}">0</div>
+        </div>
+    </div>
+    
+    <div class="main-grid">
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Tasks</h2>
+                <button class="refresh-btn" onclick="location.reload()">Refresh</button>
+            </div>
+            <div class="panel-content">
+                <div th:each="task : ${tasks}" class="task-item">
+                    <div class="task-header">
+                        <span class="task-type" th:text="${task.taskType}">Task Type</span>
+                        <span class="status" th:class="'status ' + ${task.status}" th:text="${task.status}">STATUS</span>
+                    </div>
+                    <div class="task-meta">
+                        ID: <span th:text="${task.id}">1</span> |
+                        Duration: <span th:text="${task.executionTimeMs != null ? task.executionTimeMs + 'ms' : 'N/A'}">N/A</span> |
+                        Retries: <span th:text="${task.retryCount}">0</span>
+                    </div>
+                </div>
+            </div>
+            <form class="create-form" method="post" action="/tasks">
+                <div class="form-row">
+                    <select name="taskType">
+                        <option value="EMAIL_NOTIFICATION">Email Notification</option>
+                        <option value="PAYMENT_PROCESSING">Payment Processing</option>
+                        <option value="DATA_SYNC">Data Sync</option>
+                        <option value="REPORT_GENERATION">Report Generation</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <input type="text" name="payload" placeholder='{"key": "value"}' value='{"test": true}'>
+                    <button type="submit">Create Task</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Log Stream</h2>
+                <span th:text="${stats.totalLogs} + ' entries'">0 entries</span>
+            </div>
+            <div class="panel-content">
+                <div th:each="log : ${logs}" class="log-item">
+                    <span class="log-level" th:class="'log-level ' + ${log.level}" th:text="${log.level}">INFO</span>
+                    <div class="log-content">
+                        <div class="log-message" th:text="${log.message}">Log message</div>
+                        <div class="log-meta">
+                            Task: <span th:text="${log.taskId}">-</span> |
+                            Type: <span th:text="${log.taskType}">-</span>
+                            <span th:if="${log.durationMs != null}"> | Duration: <span th:text="${log.durationMs}">0</span>ms</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-refresh every 5 seconds
+        setTimeout(() => location.reload(), 5000);
+    </script>
+</body>
+</html>

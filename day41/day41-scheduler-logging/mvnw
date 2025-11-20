@@ -1,0 +1,8 @@
+#!/bin/bash
+MAVEN_VERSION="3.9.6"
+if command -v mvn &> /dev/null; then
+    mvn "$@"
+else
+    echo "Maven not found. Please install Maven or use: ./mvnw wrapper:wrapper"
+    exit 1
+fi
