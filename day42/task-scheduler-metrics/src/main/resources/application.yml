@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: task-scheduler-metrics
+  datasource:
+    url: jdbc:h2:mem:taskdb;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        task.execution: true
+      percentiles:
+        task.execution: 0.5, 0.75, 0.95, 0.99
+      slo:
+        task.execution: 100ms, 500ms, 1000ms
+
+logging:
+  level:
+    com.scheduler: INFO
+
+app:
+  demo-data:
+    enabled: true
+    task-count: 25
+    settle-timeout-ms: 5000

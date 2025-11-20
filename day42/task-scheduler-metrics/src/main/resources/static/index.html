@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler Metrics Dashboard</title>
+    <link rel="icon" type="image/svg+xml"
+          href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Crect%20width='64'%20height='64'%20rx='12'%20ry='12'%20fill='%231a1a2e'/%3E%3Cpath%20d='M16%2034h32M16%2022h16M16%2046h24'%20stroke='%2300d4aa'%20stroke-width='6'%20stroke-linecap='round'/%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #e8e8e8;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #00d4aa, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            color: #8892b0;
+            margin-top: 8px;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .metric-card h3 {
+            font-size: 0.9rem;
+            color: #8892b0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .metric-value.success { color: #00d4aa; }
+        .metric-value.warning { color: #ffa726; }
+        .metric-value.error { color: #ef5350; }
+        .metric-value.info { color: #4facfe; }
+        
+        .metric-subtitle {
+            font-size: 0.85rem;
+            color: #8892b0;
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 1400px;
+            margin: 0 auto 30px;
+        }
+        
+        .control-panel h2 {
+            margin-bottom: 20px;
+            color: #4facfe;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #8892b0;
+            font-size: 0.85rem;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #e8e8e8;
+            font-size: 1rem;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(90deg, #00d4aa, #4facfe);
+            color: #1a1a2e;
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0, 212, 170, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e8e8e8;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .timers-section {
+            max-width: 1400px;
+            margin: 30px auto;
+        }
+        
+        .timers-section h2 {
+            color: #4facfe;
+            margin-bottom: 20px;
+        }
+        
+        .timer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .timer-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .timer-card h4 {
+            color: #00d4aa;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .timer-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .timer-stat:last-child {
+            border-bottom: none;
+        }
+        
+        .timer-stat-label {
+            color: #8892b0;
+        }
+        
+        .timer-stat-value {
+            font-weight: 600;
+            color: #4facfe;
+        }
+        
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 212, 170, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #00d4aa;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-fill.success {
+            background: linear-gradient(90deg, #00d4aa, #4facfe);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .form-group {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="refresh-indicator">
+        Auto-refresh: <span id="countdown">5</span>s
+    </div>
+    
+    <div class="header">
+        <h1>Task Scheduler Metrics</h1>
+        <p>Real-time monitoring with Micrometer &amp; Actuator</p>
+    </div>
+    
+    <div class="control-panel">
+        <h2>Task Submission</h2>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Task Name</label>
+                <input type="text" id="taskName" placeholder="Enter task name">
+            </div>
+            <div class="form-group">
+                <label>Type</label>
+                <select id="taskType">
+                    <option value="email">Email</option>
+                    <option value="report">Report</option>
+                    <option value="notification">Notification</option>
+                    <option value="export">Export</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Priority</label>
+                <select id="taskPriority">
+                    <option value="HIGH">High</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="LOW">Low</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="submitTask()">Submit Task</button>
+            <button class="btn btn-secondary" onclick="generateTasks(10)">Generate 10</button>
+            <button class="btn btn-secondary" onclick="generateTasks(50)">Generate 50</button>
+        </div>
+    </div>
+    
+    <div class="dashboard-grid">
+        <div class="metric-card">
+            <h3>Total Submitted</h3>
+            <div class="metric-value info" id="totalSubmitted">0</div>
+            <div class="metric-subtitle">Tasks submitted to scheduler</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Completed</h3>
+            <div class="metric-value success" id="totalCompleted">0</div>
+            <div class="metric-subtitle">Successfully processed</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Failed</h3>
+            <div class="metric-value error" id="totalFailed">0</div>
+            <div class="metric-subtitle">Execution failures</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Active Tasks</h3>
+            <div class="metric-value warning" id="activeTasks">0</div>
+            <div class="metric-subtitle">Currently executing</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Queued Tasks</h3>
+            <div class="metric-value info" id="queuedTasks">0</div>
+            <div class="metric-subtitle">Waiting for execution</div>
+        </div>
+        
+        <div class="metric-card">
+            <h3>Success Rate</h3>
+            <div class="metric-value success" id="successRate">0%</div>
+            <div class="progress-bar">
+                <div class="progress-fill success" id="successProgress" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="timers-section">
+        <h2>Execution Timers by Type</h2>
+        <div class="timer-grid" id="timerGrid">
+            <!-- Timer cards will be populated here -->
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = '/api';
+        let refreshInterval;
+        let countdown = 5;
+        
+        async function fetchMetrics() {
+            try {
+                const response = await fetch(`${API_BASE}/metrics/summary`);
+                const data = await response.json();
+                
+                document.getElementById('totalSubmitted').textContent = Math.round(data.taskSubmitted);
+                document.getElementById('totalCompleted').textContent = Math.round(data.taskCompleted);
+                document.getElementById('totalFailed').textContent = Math.round(data.taskFailed);
+                document.getElementById('activeTasks').textContent = Math.round(data.activeTasks);
+                document.getElementById('queuedTasks').textContent = Math.round(data.queuedTasks);
+                
+                const successRate = data.successRate.toFixed(1);
+                document.getElementById('successRate').textContent = successRate + '%';
+                document.getElementById('successProgress').style.width = successRate + '%';
+                
+            } catch (error) {
+                console.error('Error fetching metrics:', error);
+            }
+        }
+        
+        async function fetchTimers() {
+            try {
+                const response = await fetch(`${API_BASE}/metrics/timers`);
+                const timers = await response.json();
+                
+                const grid = document.getElementById('timerGrid');
+                grid.innerHTML = '';
+                
+                if (timers.length === 0) {
+                    grid.innerHTML = '<p style="color: #8892b0;">No timer data yet. Submit some tasks!</p>';
+                    return;
+                }
+                
+                timers.forEach(timer => {
+                    const type = timer.tags.type || 'unknown';
+                    const status = timer.tags.status || 'unknown';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'timer-card';
+                    card.innerHTML = `
+                        <h4>${type} (${status})</h4>
+                        <div class="timer-stat">
+                            <span class="timer-stat-label">Count</span>
+                            <span class="timer-stat-value">${timer.count}</span>
+                        </div>
+                        <div class="timer-stat">
+                            <span class="timer-stat-label">Mean</span>
+                            <span class="timer-stat-value">${timer.meanMs.toFixed(2)} ms</span>
+                        </div>
+                        <div class="timer-stat">
+                            <span class="timer-stat-label">Max</span>
+                            <span class="timer-stat-value">${timer.maxMs.toFixed(2)} ms</span>
+                        </div>
+                        <div class="timer-stat">
+                            <span class="timer-stat-label">Total Time</span>
+                            <span class="timer-stat-value">${(timer.totalTimeMs / 1000).toFixed(2)} s</span>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+                
+            } catch (error) {
+                console.error('Error fetching timers:', error);
+            }
+        }
+        
+        async function submitTask() {
+            const name = document.getElementById('taskName').value || 'Task-' + Date.now();
+            const type = document.getElementById('taskType').value;
+            const priority = document.getElementById('taskPriority').value;
+            
+            try {
+                await fetch(`${API_BASE}/tasks`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, type, priority })
+                });
+                
+                document.getElementById('taskName').value = '';
+                refreshData();
+            } catch (error) {
+                console.error('Error submitting task:', error);
+            }
+        }
+        
+        async function generateTasks(count) {
+            try {
+                await fetch(`${API_BASE}/tasks/generate/${count}`, { method: 'POST' });
+                refreshData();
+            } catch (error) {
+                console.error('Error generating tasks:', error);
+            }
+        }
+        
+        function refreshData() {
+            fetchMetrics();
+            fetchTimers();
+        }
+        
+        function startAutoRefresh() {
+            refreshData();
+            
+            setInterval(() => {
+                countdown--;
+                document.getElementById('countdown').textContent = countdown;
+                
+                if (countdown <= 0) {
+                    countdown = 5;
+                    refreshData();
+                }
+            }, 1000);
+        }
+        
+        // Initialize
+        startAutoRefresh();
+    </script>
+</body>
+</html>

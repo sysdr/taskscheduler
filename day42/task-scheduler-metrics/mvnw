@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+MAVEN_VERSION=3.9.6
+MAVEN_HOME="${HOME}/.m2/wrapper/dists/apache-maven-${MAVEN_VERSION}"
+
+CURRENT_DIR="$(pwd)"
+if [ ! -d "$MAVEN_HOME/bin" ]; then
+    mkdir -p "$MAVEN_HOME"
+    cd "$MAVEN_HOME"
+    wget -q "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+    tar xzf "apache-maven-${MAVEN_VERSION}-bin.tar.gz" --strip-components=1
+    rm "apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+fi
+cd "$CURRENT_DIR"
+
+exec "$MAVEN_HOME/bin/mvn" "$@"
