@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: task-scheduler-monitoring
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: jdbc:h2:mem:scheduler
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  h2:
+    console:
+      enabled: true
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        task.execution.duration: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true

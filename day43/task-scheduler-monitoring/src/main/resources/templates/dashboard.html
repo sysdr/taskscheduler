@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler - Monitoring Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 24px 32px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #1e3c72;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .metric-label {
+            font-size: 13px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1e3c72;
+        }
+
+        .metric-trend {
+            font-size: 12px;
+            color: #10b981;
+            margin-top: 8px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e3c72;
+            margin-bottom: 16px;
+        }
+
+        .tasks-table {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-running {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .refresh-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 13px;
+            color: #666;
+        }
+
+        .pulse {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .links {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .link-button {
+            padding: 10px 20px;
+            background: #2a5298;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .link-button:hover {
+            background: #1e3c72;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Task Scheduler Monitoring</h1>
+            <p class="subtitle">Real-time metrics powered by Prometheus & Grafana</p>
+            <div class="links">
+                <a href="/actuator/prometheus" class="link-button" target="_blank">📊 Prometheus Metrics</a>
+                <a href="http://localhost:9090" class="link-button" target="_blank">🔍 Prometheus UI</a>
+                <a href="http://localhost:3000" class="link-button" target="_blank">📈 Grafana Dashboard</a>
+            </div>
+        </header>
+
+        <div class="refresh-indicator">
+            <span class="pulse"></span>
+            <span id="lastUpdate">Live updating...</span>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Total Tasks</div>
+                <div class="metric-value" id="totalTasks">-</div>
+                <div class="metric-trend">All time</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Active Tasks</div>
+                <div class="metric-value" id="activeTasks">-</div>
+                <div class="metric-trend">Currently executing</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Queue Depth</div>
+                <div class="metric-value" id="queueDepth">-</div>
+                <div class="metric-trend">Waiting to execute</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Success Rate</div>
+                <div class="metric-value" id="successRate">-</div>
+                <div class="metric-trend">Last 100 tasks</div>
+            </div>
+        </div>
+
+        <div class="tasks-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Task Name</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Duration</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody id="tasksTableBody">
+                    <tr><td colspan="6" style="text-align: center; padding: 40px;">Loading tasks...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function fetchStats() {
+            try {
+                const response = await fetch('/api/tasks/stats');
+                const data = await response.json();
+                
+                document.getElementById('totalTasks').textContent = data.total;
+                document.getElementById('activeTasks').textContent = data.active;
+                document.getElementById('queueDepth').textContent = data.queued;
+                
+                const completed = data.byStatus.find(s => s[0] === 'COMPLETED')?.[1] || 0;
+                const failed = data.byStatus.find(s => s[0] === 'FAILED')?.[1] || 0;
+                const successRate = data.total > 0 ? ((completed / data.total) * 100).toFixed(1) : 0;
+                document.getElementById('successRate').textContent = successRate + '%';
+            } catch (error) {
+                console.error('Error fetching stats:', error);
+            }
+        }
+
+        async function fetchTasks() {
+            try {
+                const response = await fetch('/api/tasks');
+                const tasks = await response.json();
+                
+                const tbody = document.getElementById('tasksTableBody');
+                
+                if (tasks.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No tasks yet</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = tasks.slice(-20).reverse().map(task => `
+                    <tr>
+                        <td>${task.id}</td>
+                        <td>${task.name}</td>
+                        <td>${task.type}</td>
+                        <td><span class="status-badge status-${task.status.toLowerCase()}">${task.status}</span></td>
+                        <td>${task.durationMs ? task.durationMs + 'ms' : '-'}</td>
+                        <td>${new Date(task.createdAt).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+                
+                document.getElementById('lastUpdate').textContent = 'Updated ' + new Date().toLocaleTimeString();
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+            }
+        }
+
+        function refresh() {
+            fetchStats();
+            fetchTasks();
+        }
+
+        // Initial load
+        refresh();
+
+        // Refresh every 3 seconds
+        setInterval(refresh, 3000);
+    </script>
+</body>
+</html>
