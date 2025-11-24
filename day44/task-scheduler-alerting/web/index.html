@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler - Alert Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' ry='12' fill='%23667eea'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='Arial' font-size='28' fill='white'%3ETS%3C/text%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #2d3748;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #718096;
+            font-size: 16px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-label {
+            color: #718096;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        
+        .stat-card.critical .stat-value {
+            color: #e53e3e;
+        }
+        
+        .stat-card.warning .stat-value {
+            color: #ed8936;
+        }
+        
+        .stat-card.success .stat-value {
+            color: #38a169;
+        }
+        
+        .alerts-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 24px;
+            color: #2d3748;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .alert-item {
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #cbd5e0;
+            background: #f7fafc;
+            transition: all 0.2s;
+        }
+        
+        .alert-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .alert-item.critical {
+            border-left-color: #e53e3e;
+            background: #fff5f5;
+        }
+        
+        .alert-item.high {
+            border-left-color: #ed8936;
+            background: #fffaf0;
+        }
+        
+        .alert-item.medium {
+            border-left-color: #ecc94b;
+            background: #fffff0;
+        }
+        
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .alert-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .alert-severity {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .alert-severity.critical {
+            background: #e53e3e;
+            color: white;
+        }
+        
+        .alert-severity.high {
+            background: #ed8936;
+            color: white;
+        }
+        
+        .alert-severity.medium {
+            background: #ecc94b;
+            color: #2d3748;
+        }
+        
+        .alert-description {
+            color: #4a5568;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .alert-metadata {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: #718096;
+        }
+        
+        .alert-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .btn-ack {
+            background: #4299e1;
+            color: white;
+        }
+        
+        .btn-ack:hover {
+            background: #3182ce;
+        }
+        
+        .btn-silence {
+            background: #718096;
+            color: white;
+        }
+        
+        .btn-silence:hover {
+            background: #4a5568;
+        }
+        
+        .no-alerts {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+        
+        .no-alerts-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+        }
+        
+        .refresh-indicator {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            font-size: 14px;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚨 Task Scheduler Alert Dashboard</h1>
+            <p class="subtitle">Day 44: Real-time Alerting on Task Failures</p>
+        </header>
+        
+        <div class="stats-grid">
+            <div class="stat-card critical">
+                <div class="stat-label">Active Alerts</div>
+                <div class="stat-value" id="activeAlerts">-</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-label">Critical Alerts</div>
+                <div class="stat-value" id="criticalAlerts">-</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-label">Alerts Today</div>
+                <div class="stat-value" id="alertsToday">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">System Health</div>
+                <div class="stat-value" id="systemHealth">-</div>
+            </div>
+        </div>
+        
+        <div class="alerts-section">
+            <h2 class="section-title">Active Alerts</h2>
+            <div id="alertsList"></div>
+        </div>
+    </div>
+    
+    <div class="refresh-indicator">
+        ⟳ Auto-refresh: <span id="countdown">10</span>s
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8084/api';
+        let countdown = 10;
+        
+        async function fetchAlerts() {
+            try {
+                const response = await fetch(`${API_BASE}/alerts`);
+                const alerts = await response.json();
+                
+                updateStats(alerts);
+                renderAlerts(alerts);
+            } catch (error) {
+                console.error('Error fetching alerts:', error);
+            }
+        }
+        
+        function updateStats(alerts) {
+            const activeCount = alerts.filter(a => a.status === 'FIRING').length;
+            const criticalCount = alerts.filter(a => a.severity === 'CRITICAL' && a.status === 'FIRING').length;
+            
+            document.getElementById('activeAlerts').textContent = activeCount;
+            document.getElementById('criticalAlerts').textContent = criticalCount;
+            document.getElementById('alertsToday').textContent = alerts.length;
+            document.getElementById('systemHealth').textContent = criticalCount === 0 ? '✓' : '✗';
+        }
+        
+        function renderAlerts(alerts) {
+            const container = document.getElementById('alertsList');
+            
+            if (alerts.length === 0) {
+                container.innerHTML = `
+                    <div class="no-alerts">
+                        <div class="no-alerts-icon">✓</div>
+                        <h3>All Clear!</h3>
+                        <p>No active alerts at this time.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const activeAlerts = alerts.filter(a => a.status === 'FIRING');
+            
+            container.innerHTML = activeAlerts.map(alert => `
+                <div class="alert-item ${alert.severity.toLowerCase()}">
+                    <div class="alert-header">
+                        <div class="alert-name">${alert.name}</div>
+                        <span class="alert-severity ${alert.severity.toLowerCase()}">${alert.severity}</span>
+                    </div>
+                    <div class="alert-description">${alert.description}</div>
+                    <div class="alert-metadata">
+                        <span>📊 ${alert.metric}</span>
+                        <span>📈 Current: ${alert.currentValue.toFixed(2)}</span>
+                        <span>⚠️ Threshold: ${alert.threshold.toFixed(2)}</span>
+                        <span>🕐 ${new Date(alert.triggeredAt).toLocaleTimeString()}</span>
+                    </div>
+                    <div class="alert-actions">
+                        <button class="btn btn-ack" onclick="acknowledgeAlert('${alert.id}')">Acknowledge</button>
+                        <button class="btn btn-silence" onclick="silenceAlert('${alert.id}')">Silence</button>
+                        <a href="${alert.dashboardUrl}" target="_blank" class="btn" style="background:#48bb78;color:white">Dashboard</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function acknowledgeAlert(alertId) {
+            try {
+                await fetch(`${API_BASE}/alerts/${alertId}/acknowledge`, { method: 'POST' });
+                fetchAlerts();
+            } catch (error) {
+                console.error('Error acknowledging alert:', error);
+            }
+        }
+        
+        async function silenceAlert(alertId) {
+            try {
+                await fetch(`${API_BASE}/alerts/${alertId}/silence`, { method: 'POST' });
+                fetchAlerts();
+            } catch (error) {
+                console.error('Error silencing alert:', error);
+            }
+        }
+        
+        function startCountdown() {
+            setInterval(() => {
+                countdown--;
+                document.getElementById('countdown').textContent = countdown;
+                
+                if (countdown === 0) {
+                    fetchAlerts();
+                    countdown = 10;
+                }
+            }, 1000);
+        }
+        
+        // Initial load
+        fetchAlerts();
+        setInterval(fetchAlerts, 10000);
+        startCountdown();
+    </script>
+</body>
+</html>

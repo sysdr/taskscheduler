@@ -1,0 +1,58 @@
+groups:
+  - name: task_scheduler_alerts
+    interval: 30s
+    rules:
+      # High Task Failure Rate
+      - alert: HighTaskFailureRate
+        expr: (rate(task_failures_total[5m]) / rate(task_total[5m])) * 100 > 5
+        for: 5m
+        labels:
+          severity: high
+          team: ops
+          service: task-scheduler
+        annotations:
+          summary: "High task failure rate detected"
+          description: "Task failure rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+          runbook_url: "https://wiki.company.com/runbooks/task-failures"
+          dashboard_url: "http://localhost:3000/d/task-scheduler"
+      
+      # Critical Queue Depth
+      - alert: CriticalQueueDepth
+        expr: task_queue_depth > 10000
+        for: 10m
+        labels:
+          severity: critical
+          team: ops
+          service: task-scheduler
+        annotations:
+          summary: "Critical task queue depth"
+          description: "Queue depth is {{ $value }} tasks (threshold: 10000). Consumers may be down."
+          runbook_url: "https://wiki.company.com/runbooks/queue-depth"
+          dashboard_url: "http://localhost:3000/d/task-scheduler"
+      
+      # High Task Duration
+      - alert: HighTaskDuration
+        expr: histogram_quantile(0.95, rate(task_duration_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: medium
+          team: performance
+          service: task-scheduler
+        annotations:
+          summary: "High task duration (P95)"
+          description: "P95 task duration is {{ $value }}s (threshold: 10s)"
+          runbook_url: "https://wiki.company.com/runbooks/performance"
+          dashboard_url: "http://localhost:3000/d/task-scheduler"
+      
+      # Service Down
+      - alert: ServiceDown
+        expr: up{job="spring-boot-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: ops
+          service: task-scheduler
+        annotations:
+          summary: "Task Scheduler service is down"
+          description: "The task scheduler service has been down for more than 1 minute"
+          runbook_url: "https://wiki.company.com/runbooks/service-down"

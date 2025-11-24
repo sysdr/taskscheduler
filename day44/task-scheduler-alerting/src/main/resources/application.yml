@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: task-scheduler-alerting
+  threads:
+    virtual:
+      enabled: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${SMTP_USERNAME:alerts@example.com}
+    password: ${SMTP_PASSWORD:changeme}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  port: 8084
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    export:
+      prometheus:
+        enabled: true
+
+alerting:
+  slack:
+    webhook-url: ${SLACK_WEBHOOK_URL:https://hooks.slack.com/services/YOUR/WEBHOOK/URL}
+    enabled: ${SLACK_ENABLED:false}
+  email:
+    enabled: ${EMAIL_ENABLED:false}
+    recipients: ${EMAIL_RECIPIENTS:ops-team@example.com}
+  webhook:
+    enabled: ${WEBHOOK_ENABLED:false}
+    url: ${WEBHOOK_URL:http://localhost:8085/alerts}
+  rules:
+    task-failure-rate-threshold: 5.0
+    task-failure-duration-minutes: 5
+    task-duration-p95-threshold-ms: 10000
+    queue-depth-threshold: 10000
+  demo-data:
+    enabled: true

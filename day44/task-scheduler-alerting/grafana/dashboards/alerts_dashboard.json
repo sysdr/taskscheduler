@@ -1,0 +1,43 @@
+{
+  "dashboard": {
+    "title": "Task Scheduler - Alerts & Health",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Active Alerts",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "count(ALERTS{alertstate=\"firing\"})",
+            "legendFormat": "Active Alerts"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Task Failure Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(task_failures_total[5m]) * 100",
+            "legendFormat": "Failure Rate %"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}
+      },
+      {
+        "id": 3,
+        "title": "Alert History (24h)",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "ALERTS",
+            "format": "table"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+      }
+    ]
+  }
+}
