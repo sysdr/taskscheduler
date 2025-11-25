@@ -1,0 +1,35 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: task-scheduler-${INSTANCE_ID:01}
+  threads:
+    virtual:
+      enabled: true
+
+scheduler:
+  instance-id: ${INSTANCE_ID:01}
+  task-execution-rate: 5000
+  
+elasticsearch:
+  host: localhost
+  port: 9200
+  scheme: http
+  index-prefix: scheduler-logs
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+  level:
+    root: INFO
+    com.scheduler: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,loggers
+  endpoint:
+    health:
+      show-details: always

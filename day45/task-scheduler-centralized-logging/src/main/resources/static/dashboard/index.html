@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheduler Log Dashboard</title>
+    <link rel="stylesheet" href="/dashboard/styles.css">
+</head>
+<body>
+<header class="page-header">
+    <div>
+        <p class="eyebrow">Centralized Observability</p>
+        <h1>Scheduler Log Dashboard</h1>
+        <p class="subtitle">Search across all scheduler instances and track log health in real time.</p>
+    </div>
+    <div class="header-actions">
+        <button id="refresh-btn" class="primary">Refresh Now</button>
+        <button id="auto-refresh-btn" class="ghost">Auto Refresh: Off</button>
+    </div>
+</header>
+
+<main class="layout">
+    <section class="stats">
+        <article class="stat-card">
+            <p class="label">Total Logs</p>
+            <p class="value" id="total-logs">—</p>
+        </article>
+        <article class="stat-card">
+            <p class="label">Error Logs</p>
+            <p class="value" id="error-count">—</p>
+        </article>
+        <article class="stat-card secondary">
+            <p class="label">Last Updated</p>
+            <p class="value small" id="last-updated">Never</p>
+        </article>
+    </section>
+
+    <section class="panel">
+        <header class="panel-header">
+            <div>
+                <h2>Filters</h2>
+                <p class="subtitle">Refine by keyword, level, instance, or size.</p>
+            </div>
+        </header>
+        <form id="filters" class="filters">
+            <label>
+                <span>Search</span>
+                <input id="query" type="text" placeholder="message, task, user, correlation id">
+            </label>
+
+            <label>
+                <span>Level</span>
+                <select id="level">
+                    <option value="">Any</option>
+                    <option value="INFO">INFO</option>
+                    <option value="WARN">WARN</option>
+                    <option value="ERROR">ERROR</option>
+                </select>
+            </label>
+
+            <label>
+                <span>Instance</span>
+                <select id="instance">
+                    <option value="">Any</option>
+                    <option value="01">01</option>
+                    <option value="02">02</option>
+                    <option value="03">03</option>
+                </select>
+            </label>
+
+            <label>
+                <span>Results</span>
+                <input id="size" type="number" min="1" max="200" value="50">
+            </label>
+
+            <button type="submit" class="primary full">Apply Filters</button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <header class="panel-header">
+            <div>
+                <h2>Latest Logs</h2>
+                <p class="subtitle">Live feed from Elasticsearch.</p>
+            </div>
+            <div id="status-indicator" class="status offline">Idle</div>
+        </header>
+
+        <div id="logs-empty" class="empty">
+            <p>No logs yet. Trigger a task or adjust filters.</p>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Level</th>
+                    <th>Instance</th>
+                    <th>Message</th>
+                    <th>Correlation</th>
+                </tr>
+                </thead>
+                <tbody id="logs-body"></tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="/dashboard/app.js" type="module"></script>
+</body>
+</html>
+

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    
+    <springProperty scope="context" name="applicationName" source="spring.application.name"/>
+    <springProperty scope="context" name="instanceId" source="scheduler.instance-id"/>
+    
+    <!-- Console Appender for Development -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"service":"${applicationName}","instance":"${instanceId}"}</customFields>
+            <includeMdcKeyName>correlation_id</includeMdcKeyName>
+            <includeMdcKeyName>task_id</includeMdcKeyName>
+            <includeMdcKeyName>user_id</includeMdcKeyName>
+        </encoder>
+    </appender>
+
+    <!-- Async Appender for Performance -->
+    <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="CONSOLE"/>
+    </appender>
+
+    <!-- HTTP Appender for Elasticsearch (Direct) -->
+    <appender name="ELASTICSEARCH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>localhost:5000</destination>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"service":"${applicationName}","instance":"${instanceId}"}</customFields>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_ELASTICSEARCH" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>1024</queueSize>
+        <appender-ref ref="ELASTICSEARCH"/>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="ASYNC_CONSOLE"/>
+        <appender-ref ref="ASYNC_ELASTICSEARCH"/>
+    </root>
+    
+    <logger name="com.scheduler" level="DEBUG"/>
+</configuration>

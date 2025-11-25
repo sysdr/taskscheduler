@@ -1,0 +1,10 @@
+target/
+logs/
+instance-01.pid
+instance-02.pid
+instance-03.pid
+.DS_Store
+*.iml
+.idea/
+*.log
+
