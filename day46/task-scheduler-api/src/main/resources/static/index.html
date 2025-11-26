@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler - API Dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .panel {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .task-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .task-item:hover {
+            background: #e9ecef;
+        }
+
+        .task-info {
+            flex: 1;
+        }
+
+        .task-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .task-cron {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 6px 15px;
+            font-size: 0.9em;
+            border-radius: 6px;
+        }
+
+        .btn-execute {
+            background: #28a745;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-paused {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Task Scheduler API Dashboard</h1>
+            <p>Day 46: RESTful API for Task Management and Querying</p>
+        </div>
+
+        <div id="message-container"></div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3 id="total-tasks">0</h3>
+                <p>Total Tasks</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="active-tasks">0</h3>
+                <p>Active Tasks</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="total-executions">0</h3>
+                <p>Total Executions</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="success-rate">0%</h3>
+                <p>Success Rate</p>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="panel">
+                <h2>📝 Create New Task</h2>
+                <form id="create-task-form">
+                    <div class="form-group">
+                        <label>Task Name *</label>
+                        <input type="text" id="task-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="task-description" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Cron Expression *</label>
+                        <input type="text" id="task-cron" placeholder="0 0 * * * ?" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Retries</label>
+                        <input type="number" id="task-retries" value="3" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Timeout (seconds)</label>
+                        <input type="number" id="task-timeout" value="300" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="execute-after-create" checked>
+                            <span>Execute task immediately after creation</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn">Create Task</button>
+                </form>
+            </div>
+
+            <div class="panel">
+                <h2>📋 Active Tasks</h2>
+                <div class="task-list" id="task-list">
+                    <p style="color: #666; text-align: center;">Loading tasks...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin + '/api/v1';
+
+        // Show message
+        function showMessage(message, type = 'success') {
+            const container = document.getElementById('message-container');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+            container.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const [tasksRes, executionsRes] = await Promise.all([
+                    fetch(`${API_BASE}/tasks?size=1000`),
+                    fetch(`${API_BASE}/executions?size=1000`)
+                ]);
+
+                if (!tasksRes.ok || !executionsRes.ok) {
+                    console.error('Error loading stats: HTTP', tasksRes.status, executionsRes.status);
+                    return;
+                }
+
+                const tasksData = await tasksRes.json();
+                const executionsData = await executionsRes.json();
+
+                const tasks = tasksData.content || [];
+                const executions = executionsData.content || [];
+
+                document.getElementById('total-tasks').textContent = tasks.length;
+                document.getElementById('active-tasks').textContent = 
+                    tasks.filter(t => t.status === 'ACTIVE').length;
+                document.getElementById('total-executions').textContent = executions.length;
+
+                const successCount = executions.filter(e => e.status === 'SUCCESS').length;
+                const successRate = executions.length > 0 
+                    ? Math.round((successCount / executions.length) * 100) 
+                    : 0;
+                document.getElementById('success-rate').textContent = successRate + '%';
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load tasks
+        async function loadTasks() {
+            try {
+                const response = await fetch(`${API_BASE}/tasks?size=100`);
+                
+                if (!response.ok) {
+                    console.error('Error loading tasks: HTTP', response.status);
+                    const taskList = document.getElementById('task-list');
+                    taskList.innerHTML = '<p style="color: #dc3545; text-align: center;">Error loading tasks. Please refresh the page.</p>';
+                    return;
+                }
+
+                const data = await response.json();
+                const tasks = data.content || [];
+
+                const taskList = document.getElementById('task-list');
+                
+                if (tasks.length === 0) {
+                    taskList.innerHTML = '<p style="color: #666; text-align: center;">No tasks yet. Create your first task!</p>';
+                    return;
+                }
+
+                taskList.innerHTML = tasks.map(task => `
+                    <div class="task-item">
+                        <div class="task-info">
+                            <div class="task-name">${task.name}</div>
+                            <div class="task-cron">${task.cronExpression}</div>
+                            <span class="status-badge status-${task.status.toLowerCase()}">${task.status}</span>
+                        </div>
+                        <div class="task-actions">
+                            <button class="btn btn-small btn-execute" onclick="executeTask(${task.id})">▶ Execute</button>
+                            <button class="btn btn-small btn-delete" onclick="deleteTask(${task.id})">🗑 Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+                const taskList = document.getElementById('task-list');
+                taskList.innerHTML = '<p style="color: #dc3545; text-align: center;">Error loading tasks. Please refresh the page.</p>';
+            }
+        }
+
+        // Create task
+        function setupCreateTaskForm() {
+            const form = document.getElementById('create-task-form');
+            if (!form) {
+                console.error('Create task form not found!');
+                return;
+            }
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                console.log('Form submitted');
+
+                const taskNameEl = document.getElementById('task-name');
+                const cronEl = document.getElementById('task-cron');
+                const descriptionEl = document.getElementById('task-description');
+                const retriesEl = document.getElementById('task-retries');
+                const timeoutEl = document.getElementById('task-timeout');
+                const executeAfterCreateEl = document.getElementById('execute-after-create');
+
+                if (!taskNameEl || !cronEl) {
+                    showMessage('Form fields not found. Please refresh the page.', 'error');
+                    return;
+                }
+
+                const taskName = taskNameEl.value.trim();
+                const cronExpression = cronEl.value.trim();
+                
+                // Validate required fields
+                if (!taskName) {
+                    showMessage('Task name is required', 'error');
+                    taskNameEl.focus();
+                    return;
+                }
+                
+                if (!cronExpression) {
+                    showMessage('Cron expression is required', 'error');
+                    cronEl.focus();
+                    return;
+                }
+
+                const taskData = {
+                    name: taskName,
+                    description: descriptionEl ? descriptionEl.value.trim() : null,
+                    cronExpression: cronExpression,
+                    maxRetries: retriesEl ? (parseInt(retriesEl.value) || 3) : 3,
+                    timeoutSeconds: timeoutEl ? (parseInt(timeoutEl.value) || 300) : 300,
+                    enabled: true
+                };
+
+                console.log('Creating task with data:', taskData);
+
+                // Disable submit button during request
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                if (!submitBtn) {
+                    showMessage('Submit button not found', 'error');
+                    return;
+                }
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating...';
+
+                try {
+                    console.log('Sending request to:', `${API_BASE}/tasks`);
+                    const response = await fetch(`${API_BASE}/tasks`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(taskData)
+                    });
+
+                    console.log('Response status:', response.status, response.statusText);
+
+                    let result = null;
+                    try {
+                        result = await response.json();
+                        console.log('Response data:', result);
+                    } catch (jsonError) {
+                        console.error('Error parsing JSON:', jsonError);
+                        const text = await response.text();
+                        console.error('Response text:', text);
+                        showMessage('Invalid response from server', 'error');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                        return;
+                    }
+
+                    if (!response.ok) {
+                        const errorMsg = result?.message || result?.data?.message || `Error: HTTP ${response.status}`;
+                        console.error('Error response:', errorMsg);
+                        showMessage(errorMsg, 'error');
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                        return;
+                    }
+
+                    if (result && result.success) {
+                        showMessage('Task created successfully!', 'success');
+                        form.reset();
+                        
+                        // Reload tasks and stats
+                        await Promise.all([loadTasks(), loadStats()]);
+                        
+                        // Optionally execute the task immediately if checkbox is checked
+                        const executeAfterCreate = executeAfterCreateEl ? executeAfterCreateEl.checked : false;
+                        if (executeAfterCreate && result.data && result.data.id) {
+                            console.log('Auto-executing task:', result.data.id);
+                            setTimeout(async () => {
+                                try {
+                                    const executeResponse = await fetch(`${API_BASE}/tasks/${result.data.id}/execute`, {
+                                        method: 'POST'
+                                    });
+                                    if (executeResponse.ok) {
+                                        const executeResult = await executeResponse.json();
+                                        if (executeResult.success) {
+                                            const status = executeResult.data?.status || 'UNKNOWN';
+                                            const duration = executeResult.data?.durationMs ? ` (${executeResult.data.durationMs}ms)` : '';
+                                            showMessage(`Task created and executed! Status: ${status}${duration}`, 'success');
+                                            await Promise.all([loadTasks(), loadStats()]);
+                                        }
+                                    } else {
+                                        const errorData = await executeResponse.json().catch(() => ({}));
+                                        showMessage('Task created but execution failed: ' + (errorData.message || 'Unknown error'), 'error');
+                                    }
+                                } catch (err) {
+                                    console.error('Error auto-executing task:', err);
+                                    showMessage('Task created but execution failed: ' + err.message, 'error');
+                                }
+                            }, 500);
+                        }
+                    } else {
+                        showMessage(result?.message || 'Error creating task', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error creating task:', error);
+                    showMessage('Error creating task: ' + error.message, 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            });
+        }
+
+        // Execute task
+        async function executeTask(taskId) {
+            if (!taskId) {
+                showMessage('Invalid task ID', 'error');
+                return;
+            }
+
+            // Find the button and disable it
+            const buttons = document.querySelectorAll(`button[onclick*="executeTask(${taskId})"]`);
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                const originalText = btn.textContent;
+                btn.textContent = 'Executing...';
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }, 5000);
+            });
+
+            try {
+                const response = await fetch(`${API_BASE}/tasks/${taskId}/execute`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json().catch(() => null);
+
+                if (!response.ok) {
+                    const errorMsg = result?.message || result?.data?.message || `Error: HTTP ${response.status}`;
+                    showMessage(errorMsg, 'error');
+                    buttons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.textContent = '▶ Execute';
+                    });
+                    return;
+                }
+
+                if (result && result.success) {
+                    const status = result.data?.status || 'UNKNOWN';
+                    const duration = result.data?.durationMs ? ` (${result.data.durationMs}ms)` : '';
+                    showMessage(`Task executed successfully! Status: ${status}${duration}`, 'success');
+                    await Promise.all([loadTasks(), loadStats()]);
+                } else {
+                    showMessage(result?.message || 'Error executing task', 'error');
+                }
+            } catch (error) {
+                console.error('Error executing task:', error);
+                showMessage('Error executing task: ' + error.message, 'error');
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.textContent = '▶ Execute';
+                });
+            }
+        }
+
+        // Delete task
+        async function deleteTask(taskId) {
+            if (!confirm('Are you sure you want to delete this task?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'Error deleting task' }));
+                    showMessage(errorData.message || `Error: HTTP ${response.status}`, 'error');
+                    return;
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('Task deleted successfully!', 'success');
+                    loadTasks();
+                    loadStats();
+                } else {
+                    showMessage(result.message || 'Error deleting task', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                showMessage('Error deleting task', 'error');
+            }
+        }
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, setting up form');
+            setupCreateTaskForm();
+            loadTasks();
+            loadStats();
+
+            // Refresh every 10 seconds
+            setInterval(() => {
+                loadTasks();
+                loadStats();
+            }, 10000);
+        });
+
+        // Also try to setup if DOM is already loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupCreateTaskForm);
+        } else {
+            setupCreateTaskForm();
+        }
+    </script>
+</body>
+</html>

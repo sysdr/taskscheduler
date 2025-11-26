@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: task-scheduler-api
+  
+  datasource:
+    url: jdbc:h2:mem:scheduler_db
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  metrics:
+    export:
+      simple:
+        enabled: true
+
+scheduler:
+  jwt:
+    secret: MySecretKeyForJWTTokenGenerationMustBeLongEnoughForHS256Algorithm
+    expiration: 86400000
+  
+  default:
+    page-size: 20
+    max-page-size: 100

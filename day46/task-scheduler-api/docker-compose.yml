@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  scheduler-api:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - scheduler-network
+
+networks:
+  scheduler-network:
+    driver: bridge
