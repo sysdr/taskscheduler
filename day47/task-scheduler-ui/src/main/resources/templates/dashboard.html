@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                    <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <path d="M20 12 L20 20 L26 26" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+                </svg>
+                <h1>Task Scheduler</h1>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="executeNextTask()" title="Execute next scheduled task">
+                    ⏭️ Next Task
+                </button>
+                <button class="btn btn-primary" onclick="showCreateModal()">
+                    + New Task
+                </button>
+            </div>
+        </header>
+
+        <!-- Metrics Cards -->
+        <section class="metrics">
+            <div class="metric-card">
+                <div class="metric-icon">📊</div>
+                <div class="metric-content">
+                    <div class="metric-label">Total Tasks</div>
+                    <div class="metric-value" id="totalTasks">0</div>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-icon">✅</div>
+                <div class="metric-content">
+                    <div class="metric-label">Success Rate</div>
+                    <div class="metric-value" id="successRate">0%</div>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-icon">⚡</div>
+                <div class="metric-content">
+                    <div class="metric-label">Avg Time</div>
+                    <div class="metric-value" id="avgTime">0ms</div>
+                </div>
+            </div>
+            
+            <div class="metric-card alert">
+                <div class="metric-icon">❌</div>
+                <div class="metric-content">
+                    <div class="metric-label">Failed Tasks</div>
+                    <div class="metric-value" id="failedTasks">0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tasks Table -->
+        <section class="tasks-section">
+            <div class="section-header">
+                <h2>Active Tasks</h2>
+                <div class="filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="RUNNING">Running</button>
+                    <button class="filter-btn" data-filter="SCHEDULED">Scheduled</button>
+                    <button class="filter-btn" data-filter="FAILED">Failed</button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="tasks-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Last Run</th>
+                            <th>Executions</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tasksTableBody">
+                        <tr>
+                            <td colspan="6" class="loading">Loading tasks...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Create Task Modal -->
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Task</h2>
+                <button class="close-btn" onclick="closeCreateModal()">&times;</button>
+            </div>
+            <form id="createTaskForm">
+                <div class="form-group">
+                    <label>Task Name</label>
+                    <input type="text" name="name" required placeholder="Enter task name">
+                </div>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="3" placeholder="Task description"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Task Type</label>
+                    <select name="type" onchange="toggleScheduleFields(this.value)" required>
+                        <option value="CRON">Cron Schedule</option>
+                        <option value="FIXED_DELAY">Fixed Delay</option>
+                        <option value="ONE_TIME">One Time</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="cronField">
+                    <label>Cron Expression</label>
+                    <input type="text" name="cronExpression" placeholder="0 0 * * * ?">
+                    <small>Format: second minute hour day month weekday</small>
+                </div>
+                
+                <div class="form-group" id="delayField" style="display: none;">
+                    <label>Fixed Delay (milliseconds)</label>
+                    <input type="number" name="fixedDelayMs" placeholder="60000">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Create Task
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
