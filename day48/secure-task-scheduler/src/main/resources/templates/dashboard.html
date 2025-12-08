@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Secure Task Scheduler</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="dashboard-container">
+        <nav class="dashboard-nav">
+            <div class="nav-brand">🔒 Task Scheduler</div>
+            <div class="nav-user">
+                <span id="userDisplay"></span>
+                <button onclick="logout()" class="btn-outline">Logout</button>
+            </div>
+        </nav>
+        
+        <div class="dashboard-content">
+            <div class="dashboard-header">
+                <h1>My Tasks</h1>
+                <button onclick="showCreateModal()" class="btn-primary">➕ Create Task</button>
+            </div>
+            
+            <!-- Metrics Section -->
+            <div id="metricsSection" class="metrics-section">
+                <div class="metric-card">
+                    <div class="metric-icon">📊</div>
+                    <div class="metric-value" id="metricTotalTasks">0</div>
+                    <div class="metric-label">Total Tasks</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">✅</div>
+                    <div class="metric-value" id="metricActiveTasks">0</div>
+                    <div class="metric-label">Active Tasks</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">⏸️</div>
+                    <div class="metric-value" id="metricInactiveTasks">0</div>
+                    <div class="metric-label">Inactive Tasks</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">🔄</div>
+                    <div class="metric-value" id="metricTotalExecutions">0</div>
+                    <div class="metric-label">Total Executions</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">✓</div>
+                    <div class="metric-value" id="metricSuccessfulExecutions">0</div>
+                    <div class="metric-label">Successful</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">✗</div>
+                    <div class="metric-value" id="metricFailedExecutions">0</div>
+                    <div class="metric-label">Failed</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">👥</div>
+                    <div class="metric-value" id="metricTotalUsers">0</div>
+                    <div class="metric-label">Total Users</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-icon">⏰</div>
+                    <div class="metric-value" id="metricRecentExecutions">0</div>
+                    <div class="metric-label">Recent (24h)</div>
+                </div>
+            </div>
+            
+            <div id="tasksGrid" class="tasks-grid"></div>
+        </div>
+    </div>
+    
+    <!-- Create Task Modal -->
+    <div id="createModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeCreateModal()">&times;</span>
+            <h2>Create New Task</h2>
+            
+            <form id="createTaskForm">
+                <div class="form-group">
+                    <label for="taskName">Task Name</label>
+                    <input type="text" id="taskName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="taskDescription">Description</label>
+                    <textarea id="taskDescription" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cronExpression">Cron Expression</label>
+                    <input type="text" id="cronExpression" placeholder="0 0 * * * ?" required>
+                    <small>Example: 0 0 12 * * ? (Daily at noon)</small>
+                </div>
+                
+                <button type="submit" class="btn-primary btn-full">Create Task</button>
+            </form>
+        </div>
+    </div>
+    
+    <script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

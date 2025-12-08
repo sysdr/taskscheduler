@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - JWT_SECRET=mySecretKeyForJWTTokenGenerationThatIsLongEnough123456789
+      - SPRING_PROFILES_ACTIVE=prod
+    restart: unless-stopped

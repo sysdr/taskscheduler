@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Task Scheduler</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="landing-container">
+        <nav class="navbar">
+            <div class="nav-brand">🔒 Secure Task Scheduler</div>
+            <div class="nav-links">
+                <a href="/login" class="btn-outline">Login</a>
+                <a href="/register" class="btn-primary">Get Started</a>
+            </div>
+        </nav>
+        
+        <div class="hero">
+            <h1>Enterprise-Grade Task Scheduling</h1>
+            <p class="hero-subtitle">
+                JWT-authenticated, role-based task scheduling with comprehensive audit trails
+            </p>
+            <div class="hero-buttons">
+                <a href="/register" class="btn-large btn-primary">Start Free</a>
+                <a href="/login" class="btn-large btn-outline">Sign In</a>
+            </div>
+        </div>
+        
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3>JWT Authentication</h3>
+                <p>Stateless, scalable authentication with industry-standard JWT tokens</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Role-Based Access</h3>
+                <p>Fine-grained permissions with USER and ADMIN roles</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Audit Trails</h3>
+                <p>Complete activity logging for compliance and security</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
