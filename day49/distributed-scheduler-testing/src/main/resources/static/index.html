@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Testing Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(135deg, #0a0f1e 0%, #1a1f35 100%);
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            padding: 30px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            font-size: 2rem;
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(74,222,128,0.2);
+            border-radius: 12px;
+            padding: 25px;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #a0a0a0;
+            text-transform: uppercase;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4ade80;
+        }
+        .section {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(74,222,128,0.2);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #4ade80;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(74,222,128,0.3);
+            padding-bottom: 10px;
+        }
+        .buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            color: #0a0f1e;
+        }
+        .result {
+            background: rgba(255,255,255,0.02);
+            border-left: 4px solid #4ade80;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Distributed Scheduler Testing</h1>
+            <p>Day 49: Testing Strategies</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Status</div>
+                <div class="stat-value" id="status">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Tasks Executed</div>
+                <div class="stat-value" id="tasks">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pending</div>
+                <div class="stat-value" id="pending">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Leader</div>
+                <div class="stat-value" id="leader">-</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔒 Distributed Lock Tests</h2>
+            <div class="buttons">
+                <button class="btn" onclick="testLock()">Test Lock</button>
+                <button class="btn" onclick="testConcurrent()">Test Concurrent</button>
+            </div>
+            <div id="lockResults"></div>
+        </div>
+
+        <div class="section">
+            <h2>👑 Leader Election Tests</h2>
+            <div class="buttons">
+                <button class="btn" onclick="testElection()">Test Election</button>
+            </div>
+            <div id="leaderResults"></div>
+        </div>
+
+        <div class="section">
+            <h2>📋 Task Tests</h2>
+            <div class="buttons">
+                <button class="btn" onclick="testTask()">Create Task</button>
+                <button class="btn" onclick="loadTasks()">Refresh</button>
+            </div>
+            <div id="taskResults"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        
+        async function loadStatus() {
+            try {
+                const r = await fetch(`${API_BASE}/api/status`);
+                if (!r.ok) {
+                    console.error('Status request failed:', r.status, r.statusText);
+                    return;
+                }
+                const d = await r.json();
+                document.getElementById('status').textContent = d.isLeader ? '👑' : '⚡';
+                document.getElementById('tasks').textContent = d.tasksExecuted;
+                document.getElementById('pending').textContent = d.pendingTasks;
+                document.getElementById('leader').textContent = (d.currentLeader || 'None').substring(0,10);
+            } catch(e) {
+                console.error('Error loading status:', e);
+            }
+        }
+
+        async function testLock() {
+            const key = 'test-' + Date.now();
+            try {
+                const r = await fetch(`${API_BASE}/api/lock/acquire?key=${key}`, {method:'POST'});
+                const d = await r.json();
+                const div = document.createElement('div');
+                div.className = 'result';
+                div.textContent = `Lock ${key}: ${d.acquired ? 'ACQUIRED' : 'FAILED'}`;
+                document.getElementById('lockResults').prepend(div);
+            } catch(e) {
+                console.error('Error testing lock:', e);
+            }
+        }
+
+        async function testConcurrent() {
+            const key = 'conc-' + Date.now();
+            try {
+                const results = await Promise.all([...Array(5)].map(() =>
+                    fetch(`${API_BASE}/api/lock/acquire?key=${key}`, {method:'POST'}).then(r=>r.json())
+                ));
+                const count = results.filter(d => d.acquired).length;
+                const div = document.createElement('div');
+                div.className = 'result';
+                div.textContent = `Concurrent test: ${count} acquired (expected 1)`;
+                document.getElementById('lockResults').prepend(div);
+            } catch(e) {
+                console.error('Error testing concurrent locks:', e);
+            }
+        }
+
+        async function testElection() {
+            try {
+                const r = await fetch(`${API_BASE}/api/leader/elect`, {method:'POST'});
+                const d = await r.json();
+                const div = document.createElement('div');
+                div.className = 'result';
+                div.textContent = `Election: ${d.elected ? 'ELECTED' : 'FAILED'}`;
+                document.getElementById('leaderResults').prepend(div);
+                loadStatus();
+            } catch(e) {
+                console.error('Error testing election:', e);
+            }
+        }
+
+        async function testTask() {
+            const name = 'Task-' + Date.now();
+            try {
+                const r = await fetch(`${API_BASE}/api/tasks?name=${name}&description=Test`, {method:'POST'});
+                const div = document.createElement('div');
+                div.className = 'result';
+                div.textContent = `Created: ${name}`;
+                document.getElementById('taskResults').prepend(div);
+                loadStatus();
+            } catch(e) {
+                console.error('Error creating task:', e);
+            }
+        }
+
+        async function loadTasks() {
+            try {
+                const r = await fetch(`${API_BASE}/api/tasks`);
+                const tasks = await r.json();
+                const div = document.createElement('div');
+                div.innerHTML = `<strong>Total: ${tasks.length}</strong>`;
+                document.getElementById('taskResults').prepend(div);
+            } catch(e) {
+                console.error('Error loading tasks:', e);
+            }
+        }
+
+        setInterval(loadStatus, 3000);
+        loadStatus();
+    </script>
+</body>
+</html>
