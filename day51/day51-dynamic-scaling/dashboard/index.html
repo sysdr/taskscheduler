@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Dynamic Scaling Dashboard</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='50' x='6' font-size='48'%3E⚡%3C/text%3E%3C/svg%3E">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:20px}
+.container{max-width:1400px;margin:0 auto}
+.header{background:#fff;padding:30px;border-radius:15px;box-shadow:0 10px 40px rgba(0,0,0,0.1);margin-bottom:30px;text-align:center;position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:center}
+.mode-pill{background:#eef2ff;color:#4f46e5;padding:6px 12px;border-radius:999px;font-size:0.85em;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,0.06)}
+.mode-actions{display:flex;align-items:center;gap:10px;position:absolute;right:20px;top:20px}
+.pill-btn{border:1px solid #e0e7ff;background:#fff;color:#4f46e5;border-radius:10px;padding:6px 12px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.pill-btn:hover{background:#eef2ff}
+.header h1{color:#667eea;font-size:2.5em;margin-bottom:10px}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:30px}
+.card{background:#fff;padding:25px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,0.1);transition:transform 0.3s}
+.card:hover{transform:translateY(-5px)}
+.label{color:#999;font-size:0.9em;text-transform:uppercase;margin-bottom:10px}
+.value{font-size:2.5em;font-weight:bold;color:#667eea}
+.chart-box{background:#fff;padding:30px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,0.1);margin-bottom:30px}
+.events{max-height:400px;overflow-y:auto}
+.event{background:#f8f9fa;padding:15px;border-radius:10px;margin-bottom:10px;border-left:4px solid #667eea}
+.muted{opacity:0.7}
+.scale-up{border-left-color:#4caf50}
+.scale-down{border-left-color:#ffc107}
+</style>
+</head><body>
+<div class="container">
+<div class="header"><h1>⚡ Dynamic Scaling Dashboard</h1>
+  <div class="mode-actions">
+    <div class="mode-pill" id="mode">Live data</div>
+    <button class="pill-btn" id="toggleDemo">Show demo data</button>
+  </div>
+</div>
+<div class="metrics">
+<div class="card"><div class="label">Queue Depth</div><div class="value" id="queue">0</div></div>
+<div class="card"><div class="label">Active Instances</div><div class="value" id="instances">1</div></div>
+<div class="card"><div class="label">Processing</div><div class="value" id="processing">0</div></div>
+<div class="card"><div class="label">Tasks/Instance</div><div class="value" id="perInstance">0</div></div>
+</div>
+<div class="chart-box"><canvas id="chart"></canvas></div>
+<div class="chart-box"><h3>Scaling Events</h3><div class="events" id="events"></div></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const API='http://localhost:8080/api';
+let demoState={queueDepth:50,activeInstances:2,tasksProcessing:15,loadPattern:0};
+const demoEvents=[
+  {action:'SCALE_UP',reason:'High load: 180 tasks/instance',before:2,after:4},
+  {action:'SCALE_UP',reason:'Burst detected: 220 tasks/instance',before:4,after:6},
+  {action:'SCALE_DOWN',reason:'Low load: 25 tasks/instance',before:6,after:4},
+  {action:'SCALE_UP',reason:'Traffic spike: 190 tasks/instance',before:4,after:5}
+];
+let chart,qData=[],iData=[],usingDemo=false,forceDemo=false;
+const ctx=document.getElementById('chart').getContext('2d');
+chart=new Chart(ctx,{type:'line',data:{labels:[],datasets:[{label:'Queue',data:[],borderColor:'#667eea',fill:true},{label:'Instances×10',data:[],borderColor:'#4caf50',fill:true}]},options:{responsive:true}});
+
+function setMode(demo,reason=''){usingDemo=demo;document.getElementById('mode').textContent=demo?`Demo data${reason}`:'Live data';document.body.classList.toggle('muted',demo);}
+
+function updateDemoMetrics(){
+  demoState.loadPattern=(demoState.loadPattern+1)%60;
+  const phase=demoState.loadPattern;
+  let baseLoad=50;
+  if(phase<20)baseLoad=30+Math.random()*40;
+  else if(phase<35)baseLoad=80+Math.random()*120;
+  else if(phase<50)baseLoad=150+Math.random()*100;
+  else baseLoad=40+Math.random()*30;
+  demoState.queueDepth=Math.round(baseLoad);
+  demoState.tasksProcessing=Math.round(baseLoad*0.3+Math.random()*20);
+  const perInstance=(demoState.queueDepth+demoState.tasksProcessing)/demoState.activeInstances;
+  if(perInstance>150&&demoState.activeInstances<8)demoState.activeInstances++;
+  else if(perInstance<30&&demoState.activeInstances>1)demoState.activeInstances--;
+  return{queueDepth:demoState.queueDepth,activeInstances:demoState.activeInstances,tasksProcessing:demoState.tasksProcessing};
+}
+
+function renderMetrics(m){
+  document.getElementById('queue').textContent=m.queueDepth||0;
+  document.getElementById('instances').textContent=m.activeInstances||1;
+  document.getElementById('processing').textContent=m.tasksProcessing||0;
+  document.getElementById('perInstance').textContent=Math.round((m.queueDepth+m.tasksProcessing)/(m.activeInstances||1));
+  qData.push(m.queueDepth||0);
+  iData.push((m.activeInstances||1)*10);
+  if(qData.length>30){qData.shift();iData.shift();chart.data.labels.shift()}
+  chart.data.labels.push(new Date().toLocaleTimeString());
+  chart.data.datasets[0].data=qData;
+  chart.data.datasets[1].data=iData;
+  chart.update('none');
+}
+
+function renderEvents(list){
+  const el=document.getElementById('events');
+  if(list.length===0){el.innerHTML='<p style="text-align:center;color:#999">No events yet</p>';return}
+  el.innerHTML=list.slice().reverse().map(e=>`<div class="event ${e.action.toLowerCase().replace('_','-')}"><b>${e.action.replace('_',' ')}</b> - ${e.reason}<br><small>${e.before||'?'}→${e.after||'?'} instances</small></div>`).join('');
+}
+
+async function update(){
+  if(forceDemo){
+    setMode(true,' (forced)');
+    const demoM=updateDemoMetrics();
+    renderMetrics(demoM);
+    renderEvents(demoEvents);
+    return;
+  }
+  try{
+    const m=await(await fetch(API+'/metrics')).json();
+    const ev=await(await fetch(API+'/scaling/events')).json();
+    setMode(false);
+    renderMetrics(m);
+    renderEvents(ev);
+  }catch(e){
+    console.error(e);
+    setMode(true,' (fallback)');
+    const demoM=updateDemoMetrics();
+    renderMetrics(demoM);
+    renderEvents(demoEvents);
+  }
+}
+setInterval(update,2000);
+update();
+
+document.getElementById('toggleDemo').addEventListener('click',()=>{
+  forceDemo=!forceDemo;
+  document.getElementById('toggleDemo').textContent=forceDemo?'Show live data':'Show demo data';
+  update();
+});
+</script>
+</body></html>
