@@ -1,0 +1,17 @@
+# Build outputs
+target/
+
+# IDE/editor
+.idea/
+.vscode/
+*.iml
+*.swp
+*.tmp
+
+# OS / misc
+.DS_Store
+*.log
+
+# Local tooling binaries
+/kind
+

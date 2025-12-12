@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scheduler-config
+data:
+  application.properties: |
+    server.port=8080
+    spring.application.name=task-scheduler-k8s
+    management.endpoints.web.exposure.include=health,metrics,prometheus,info
+    management.endpoint.health.show-details=always
+    logging.level.com.scheduler=INFO

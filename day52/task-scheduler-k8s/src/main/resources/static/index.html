@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Scheduler - Kubernetes Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-label {
+            color: #999;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .stat-value {
+            color: #333;
+            font-size: 2.2em;
+            font-weight: bold;
+        }
+        
+        .stat-icon {
+            float: right;
+            font-size: 2em;
+            opacity: 0.3;
+        }
+        
+        .form-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+        }
+        
+        .tasks-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            color: #555;
+            font-weight: 600;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .pod-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Task Scheduler Dashboard</h1>
+            <p class="subtitle">Kubernetes Containerized Task Execution</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-icon">📊</span>
+                <div class="stat-label">Total Tasks</div>
+                <div class="stat-value" id="totalTasks">0</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">⏳</span>
+                <div class="stat-label">Pending</div>
+                <div class="stat-value" id="pendingTasks">0</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">✅</span>
+                <div class="stat-label">Completed</div>
+                <div class="stat-value" id="completedTasks">0</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-icon">🚀</span>
+                <div class="stat-label">Pod Name</div>
+                <div class="stat-value" id="podName" style="font-size: 1.2em;">Loading...</div>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h2 style="margin-bottom: 20px; color: #333;">Schedule New Task</h2>
+            <form id="taskForm">
+                <div class="form-group">
+                    <label for="taskName">Task Name</label>
+                    <input type="text" id="taskName" required placeholder="Enter task name">
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription">Description</label>
+                    <textarea id="taskDescription" rows="3" required placeholder="Describe the task"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="scheduledTime">Scheduled Time</label>
+                    <input type="datetime-local" id="scheduledTime" required>
+                </div>
+                <button type="submit">Schedule Task</button>
+            </form>
+        </div>
+        
+        <div class="tasks-section">
+            <h2 style="margin-bottom: 20px; color: #333;">All Tasks</h2>
+            <table id="tasksTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Scheduled</th>
+                        <th>Executed Time</th>
+                        <th>Executed By</th>
+                    </tr>
+                </thead>
+                <tbody id="tasksBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: #999;">Loading tasks...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        async function loadTasks() {
+            try {
+                const response = await fetch('/api/tasks');
+                const tasks = await response.json();
+                
+                const tbody = document.getElementById('tasksBody');
+                
+                if (tasks.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #999;">No tasks yet</td></tr>';
+                    return;
+                }
+                
+                // Sort tasks: completed first, then pending, both sorted by ID descending
+                const sortedTasks = tasks.sort((a, b) => {
+                    if (a.status === 'COMPLETED' && b.status === 'PENDING') return -1;
+                    if (a.status === 'PENDING' && b.status === 'COMPLETED') return 1;
+                    return b.id - a.id; // Newer tasks first
+                });
+                
+                tbody.innerHTML = sortedTasks.map(task => {
+                    const executedTime = task.executedTime 
+                        ? new Date(task.executedTime).toLocaleString() 
+                        : '-';
+                    const rowClass = task.status === 'COMPLETED' ? 'style="background-color: #f0f9f4;"' : '';
+                    return `
+                    <tr ${rowClass}>
+                        <td>${task.id}</td>
+                        <td><strong>${task.name}</strong></td>
+                        <td>${task.description}</td>
+                        <td><span class="status status-${task.status.toLowerCase()}">${task.status}</span></td>
+                        <td>${new Date(task.scheduledTime).toLocaleString()}</td>
+                        <td>${executedTime}</td>
+                        <td>${task.podName ? `<span class="pod-badge">${task.podName}</span>` : '-'}</td>
+                    </tr>
+                `;
+                }).join('');
+                
+                // Update stats
+                document.getElementById('totalTasks').textContent = tasks.length;
+                document.getElementById('pendingTasks').textContent = tasks.filter(t => t.status === 'PENDING').length;
+                document.getElementById('completedTasks').textContent = tasks.filter(t => t.status === 'COMPLETED').length;
+                
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+            }
+        }
+        
+        async function loadHealth() {
+            try {
+                const response = await fetch('/api/tasks/health');
+                const health = await response.json();
+                document.getElementById('podName').textContent = health.pod;
+            } catch (error) {
+                console.error('Error loading health:', error);
+            }
+        }
+        
+        document.getElementById('taskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const task = {
+                name: document.getElementById('taskName').value,
+                description: document.getElementById('taskDescription').value,
+                scheduledTime: document.getElementById('scheduledTime').value
+            };
+            
+            try {
+                const response = await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(task)
+                });
+                
+                if (response.ok) {
+                    e.target.reset();
+                    loadTasks();
+                    alert('Task scheduled successfully!');
+                }
+            } catch (error) {
+                console.error('Error creating task:', error);
+                alert('Failed to schedule task');
+            }
+        });
+        
+        // Initial load and refresh every 5 seconds
+        loadHealth();
+        loadTasks();
+        setInterval(loadTasks, 5000);
+    </script>
+</body>
+</html>
