@@ -1,0 +1,28 @@
+replicaCount: 5
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 2Gi
+  requests:
+    cpu: 1000m
+    memory: 1Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 5
+  maxReplicas: 20
+
+ingress:
+  enabled: true
+
+redis:
+  master:
+    persistence:
+      enabled: true
+      size: 5Gi
+
+postgresql:
+  primary:
+    persistence:
+      size: 10Gi
