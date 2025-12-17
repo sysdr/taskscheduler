@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cron Expression Validator & Generator</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🕐 Cron Expression Tools</h1>
+            <p class="subtitle">Validate and Generate Cron Expressions with Real-time Preview</p>
+        </header>
+
+        <div class="tools-grid">
+            <!-- Validator Section -->
+            <section class="card validator-section">
+                <h2>Expression Validator</h2>
+                <div class="input-group">
+                    <label for="cronExpression">Cron Expression</label>
+                    <input type="text" id="cronExpression" 
+                           placeholder="0 9 * * MON" 
+                           value="0 9 * * MON">
+                    <small>Format: minute hour day month weekday</small>
+                </div>
+
+                <div class="input-group">
+                    <label for="timezone">Timezone</label>
+                    <select id="timezone">
+                        <option value="UTC">UTC</option>
+                        <option value="America/New_York">America/New_York</option>
+                        <option value="Europe/London">Europe/London</option>
+                        <option value="Asia/Tokyo">Asia/Tokyo</option>
+                        <option value="America/Los_Angeles">America/Los_Angeles</option>
+                    </select>
+                </div>
+
+                <button onclick="validateExpression()" class="btn btn-primary">
+                    Validate Expression
+                </button>
+
+                <div id="validationResult" class="result-box"></div>
+
+                <div id="previewSection" style="display: none;">
+                    <h3>Next Executions</h3>
+                    <ul id="executionList" class="execution-list"></ul>
+                </div>
+            </section>
+
+            <!-- Generator Section -->
+            <section class="card generator-section">
+                <h2>Expression Generator</h2>
+                
+                <div class="input-group">
+                    <label for="scheduleType">Schedule Type</label>
+                    <select id="scheduleType" onchange="updateGeneratorFields()">
+                        <option value="MINUTELY">Every Minute</option>
+                        <option value="HOURLY">Hourly</option>
+                        <option value="DAILY">Daily</option>
+                        <option value="WEEKLY">Weekly</option>
+                        <option value="MONTHLY">Monthly</option>
+                        <option value="CUSTOM">Custom</option>
+                    </select>
+                </div>
+
+                <div id="generatorFields">
+                    <div class="input-group" id="minuteField">
+                        <label for="minute">Minute (0-59)</label>
+                        <input type="number" id="minute" min="0" max="59" value="0">
+                    </div>
+
+                    <div class="input-group" id="hourField">
+                        <label for="hour">Hour (0-23)</label>
+                        <input type="number" id="hour" min="0" max="23" value="9">
+                    </div>
+
+                    <div class="input-group" id="dayOfWeekField" style="display: none;">
+                        <label for="dayOfWeek">Day of Week</label>
+                        <select id="dayOfWeek">
+                            <option value="*">Every Day</option>
+                            <option value="1">Monday</option>
+                            <option value="2">Tuesday</option>
+                            <option value="3">Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="5">Friday</option>
+                            <option value="6">Saturday</option>
+                            <option value="0">Sunday</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group" id="dayOfMonthField" style="display: none;">
+                        <label for="dayOfMonth">Day of Month (1-31)</label>
+                        <input type="number" id="dayOfMonth" min="1" max="31" value="1">
+                    </div>
+                </div>
+
+                <button onclick="generateExpression()" class="btn btn-success">
+                    Generate Expression
+                </button>
+
+                <div id="generatedResult" class="result-box"></div>
+            </section>
+        </div>
+
+        <!-- Quick Templates -->
+        <section class="card templates-section">
+            <h2>Quick Templates</h2>
+            <div class="templates-grid">
+                <button onclick="useTemplate('0 * * * *')" class="template-btn">
+                    Every Hour
+                </button>
+                <button onclick="useTemplate('0 0 * * *')" class="template-btn">
+                    Daily at Midnight
+                </button>
+                <button onclick="useTemplate('0 9 * * 1-5')" class="template-btn">
+                    Weekdays at 9 AM
+                </button>
+                <button onclick="useTemplate('0 0 1 * *')" class="template-btn">
+                    First Day of Month
+                </button>
+                <button onclick="useTemplate('*/15 * * * *')" class="template-btn">
+                    Every 15 Minutes
+                </button>
+                <button onclick="useTemplate('0 0 * * 0')" class="template-btn">
+                    Sunday Midnight
+                </button>
+            </div>
+        </section>
+
+        <!-- Metrics Dashboard -->
+        <section class="card metrics-section">
+            <h2>📊 Validation Metrics</h2>
+            <div class="metrics-grid">
+                <div class="metric">
+                    <span class="metric-value" id="totalValidations">0</span>
+                    <span class="metric-label">Total Validations</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value" id="validCount">0</span>
+                    <span class="metric-label">Valid Expressions</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value" id="invalidCount">0</span>
+                    <span class="metric-label">Invalid Expressions</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value" id="successRate">0%</span>
+                    <span class="metric-label">Success Rate</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>Day 55: Cron Expression Validator & Generator | Ultra-Scalable Task Scheduler</p>
+    </footer>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

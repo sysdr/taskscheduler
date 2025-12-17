@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: cron-validator-service
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=24h
+
+server:
+  port: 8080
+  address: 0.0.0.0
+  error:
+    include-message: always
+    include-binding-errors: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  level:
+    com.taskscheduler: DEBUG
+    org.springframework.web: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+cron:
+  validator:
+    max-preview-executions: 10
+    cache-enabled: true
+    validation-timeout-ms: 1000
