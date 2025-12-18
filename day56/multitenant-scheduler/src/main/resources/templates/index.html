@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Multi-Tenant Task Scheduler</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏢 Multi-Tenant Task Scheduler</h1>
+            <p class="subtitle">SaaS-Scale Task Isolation & Resource Governance</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Tenant Management -->
+            <section class="card">
+                <h2>Tenant Management</h2>
+                <div class="form-group">
+                    <input type="text" id="tenantName" placeholder="Tenant Name (e.g., Acme Corp)">
+                    <input type="number" id="maxConcurrent" placeholder="Max Concurrent Tasks" value="5">
+                    <input type="number" id="maxDaily" placeholder="Max Daily Tasks" value="1000">
+                    <button onclick="createTenant()" class="btn-primary">Create Tenant</button>
+                </div>
+                <div id="tenantsContainer" class="tenants-grid"></div>
+            </section>
+
+            <!-- Task Management -->
+            <section class="card">
+                <h2>Task Management</h2>
+                <div class="form-group">
+                    <select id="tenantSelect">
+                        <option value="">Select Tenant...</option>
+                    </select>
+                    <input type="text" id="apiKey" placeholder="Tenant API Key" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <input type="text" id="taskName" placeholder="Task Name">
+                    <input type="text" id="taskDesc" placeholder="Description">
+                    <input type="text" id="cronExpr" placeholder="Cron Expression" value="0 */5 * * * ?">
+                    <button onclick="createTask()" class="btn-success">Schedule Task</button>
+                </div>
+
+                <div id="metricsContainer" class="metrics"></div>
+                <div id="tasksContainer" class="tasks-list"></div>
+            </section>
+
+            <!-- Real-time Dashboard -->
+            <section class="card">
+                <h2>Resource Usage Dashboard</h2>
+                <div id="dashboard" class="dashboard-grid"></div>
+            </section>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
