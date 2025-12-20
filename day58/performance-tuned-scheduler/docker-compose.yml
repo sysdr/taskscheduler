@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  scheduler:
+    build: .
+    ports:
+      - "8058:8058"
+      - "9010:9010"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8058/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Tuning Dashboard</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ Performance Tuning & Optimization</h1>
+            <p class="subtitle">JVisualVM Profiling & Bottleneck Analysis</p>
+        </header>
+
+        <div class="info-panel">
+            <div class="info-card">
+                <h3>📊 Connect JVisualVM</h3>
+                <p>JMX Port: <code>9010</code></p>
+                <p>Enable CPU & Memory profiling to identify bottlenecks</p>
+            </div>
+            <div class="info-card">
+                <h3>🔍 What to Watch</h3>
+                <ul>
+                    <li>Heap usage patterns</li>
+                    <li>GC pause frequency</li>
+                    <li>Thread states</li>
+                    <li>CPU hotspots</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="mode-selector">
+                <button class="mode-btn active" data-mode="baseline">Baseline</button>
+                <button class="mode-btn" data-mode="bottlenecked">Bottlenecked</button>
+                <button class="mode-btn" data-mode="optimized">Optimized</button>
+            </div>
+            <div class="actions">
+                <button id="submitTask" class="btn btn-primary">Submit Task</button>
+                <button id="loadTest" class="btn btn-warning">Run Load Test (100 tasks)</button>
+                <button id="clearMetrics" class="btn btn-secondary">Clear Metrics</button>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>Tasks Processed</h3>
+                <div class="metric-value" id="tasksProcessed">0</div>
+                <div class="metric-label">Total</div>
+            </div>
+            <div class="metric-card">
+                <h3>Active Tasks</h3>
+                <div class="metric-value" id="activeTasks">0</div>
+                <div class="metric-label">Running</div>
+            </div>
+            <div class="metric-card">
+                <h3>Heap Usage</h3>
+                <div class="metric-value" id="heapUsed">0</div>
+                <div class="metric-label">MB</div>
+            </div>
+            <div class="metric-card">
+                <h3>Throughput</h3>
+                <div class="metric-value" id="throughput">0</div>
+                <div class="metric-label">tasks/sec</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h3>📈 Performance Over Time</h3>
+            <canvas id="performanceChart"></canvas>
+        </div>
+
+        <div class="bottleneck-analysis">
+            <h3>🔧 Known Bottlenecks in Each Mode</h3>
+            <div class="analysis-grid">
+                <div class="analysis-card">
+                    <h4>Baseline</h4>
+                    <ul>
+                        <li>✅ Clean implementation</li>
+                        <li>✅ Reasonable performance</li>
+                        <li>⚠️ Room for optimization</li>
+                    </ul>
+                </div>
+                <div class="analysis-card">
+                    <h4>Bottlenecked</h4>
+                    <ul>
+                        <li>❌ SimpleDateFormat recreation</li>
+                        <li>❌ Unnecessary serialization</li>
+                        <li>❌ String concatenation in loops</li>
+                        <li>❌ Unbounded collection (memory leak)</li>
+                        <li>❌ Synchronized method</li>
+                    </ul>
+                </div>
+                <div class="analysis-card">
+                    <h4>Optimized</h4>
+                    <ul>
+                        <li>✅ Reusable DateTimeFormatter</li>
+                        <li>✅ Minimal object creation</li>
+                        <li>✅ StringBuilder usage</li>
+                        <li>✅ No memory leaks</li>
+                        <li>✅ Reduced synchronization</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="profiling-guide">
+            <h3>📚 JVisualVM Profiling Guide</h3>
+            <div class="guide-steps">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div class="step-content">
+                        <h4>Start JVisualVM</h4>
+                        <p><code>jvisualvm</code> from command line or find in JDK bin directory</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div class="step-content">
+                        <h4>Connect to Application</h4>
+                        <p>Look for "performance-tuned-scheduler" in Local applications or add JMX connection to localhost:9010</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <div class="step-content">
+                        <h4>Monitor Tab</h4>
+                        <p>Watch heap usage, threads, CPU%. Baseline metrics before load testing</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <span class="step-number">4</span>
+                    <div class="step-content">
+                        <h4>Sampler Tab</h4>
+                        <p>Click "CPU" to see method hotspots. Look for methods consuming >10% CPU</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <span class="step-number">5</span>
+                    <div class="step-content">
+                        <h4>Memory Tab</h4>
+                        <p>Heap dump to analyze object allocation. Find memory leaks</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
