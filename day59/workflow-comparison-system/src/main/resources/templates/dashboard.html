@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Engine Comparison - Day 59</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🔄 Workflow Engine Comparison</h1>
+            <p class="subtitle">Traditional Scheduler vs Temporal.io - Real-time Comparison</p>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalOrders">0</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+            <div class="stat-card traditional">
+                <div class="stat-value" id="traditionalOrdersCount">0</div>
+                <div class="stat-label">Traditional</div>
+            </div>
+            <div class="stat-card temporal">
+                <div class="stat-value" id="temporalOrdersCount">0</div>
+                <div class="stat-label">Temporal</div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-value" id="completedOrders">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card error">
+                <div class="stat-value" id="failedOrders">0</div>
+                <div class="stat-label">Failed</div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <h2>Create Test Orders</h2>
+            <div class="button-group">
+                <button onclick="runDemo()" class="btn btn-demo">
+                    🎬 Run Demo
+                </button>
+                <button onclick="createOrder('traditional')" class="btn btn-traditional">
+                    📋 Create Traditional Order
+                </button>
+                <button onclick="createOrder('temporal')" class="btn btn-temporal">
+                    ⚡ Create Temporal Order
+                </button>
+                <button onclick="createBulkOrders()" class="btn btn-secondary">
+                    🚀 Create 10 of Each
+                </button>
+                <button onclick="resetOrders()" class="btn btn-danger">
+                    🗑️ Reset All
+                </button>
+            </div>
+            <div class="temporal-status" id="temporalStatus"></div>
+        </div>
+
+        <div class="comparison-grid">
+            <div class="approach-section">
+                <h2>🔧 Traditional Scheduler</h2>
+                <div class="approach-description">
+                    <p><strong>How it works:</strong></p>
+                    <ul>
+                        <li>Polling-based execution (checks every 2 seconds)</li>
+                        <li>Manual state management in database</li>
+                        <li>Custom retry logic with max 3 attempts</li>
+                        <li>State can be lost on server crash</li>
+                    </ul>
+                </div>
+                <div id="traditionalOrdersList" class="orders-list"></div>
+            </div>
+
+            <div class="approach-section">
+                <h2>⚡ Temporal Workflow Engine</h2>
+                <div class="approach-description">
+                    <p><strong>How it works:</strong></p>
+                    <ul>
+                        <li>Event-driven execution (immediate)</li>
+                        <li>Automatic durable state via event log</li>
+                        <li>Built-in retry with exponential backoff</li>
+                        <li>Survives crashes - resumes exactly where it left off</li>
+                    </ul>
+                </div>
+                <div id="temporalOrdersList" class="orders-list"></div>
+            </div>
+        </div>
+
+        <div class="insights-section">
+            <h2>💡 Key Insights</h2>
+            <div class="insight-card">
+                <h3>Resilience Difference</h3>
+                <p>Traditional schedulers lose in-flight state on crashes. Temporal workflows resume from exact point of failure using event sourcing.</p>
+            </div>
+            <div class="insight-card">
+                <h3>Complexity Trade-off</h3>
+                <p>Traditional: Simple setup, complex failure handling. Temporal: Complex setup, automatic failure handling.</p>
+            </div>
+            <div class="insight-card">
+                <h3>When to Use Each</h3>
+                <p><strong>Traditional:</strong> Simple periodic tasks, short-duration jobs. <strong>Temporal:</strong> Multi-step workflows, long-running processes, critical business flows.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
