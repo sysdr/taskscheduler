@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributed Task Scheduler - Production Dashboard</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>🚀 Production-Ready Distributed Task Scheduler</h1>
+            <p>Real-time monitoring of your complete 60-lesson system</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon primary">📊</div>
+                </div>
+                <div class="stat-value" id="total-tasks">42</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon success">▶️</div>
+                </div>
+                <div class="stat-value" id="running-tasks">5</div>
+                <div class="stat-label">Running Tasks</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon warning">✅</div>
+                </div>
+                <div class="stat-value" id="completed-today">127</div>
+                <div class="stat-label">Completed Today</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-icon danger">❌</div>
+                </div>
+                <div class="stat-value" id="failed-today">3</div>
+                <div class="stat-label">Failed Today</div>
+            </div>
+        </div>
+        
+        <div class="content-grid">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>System Components</h2>
+                    <span class="status-badge success">All Systems Operational</span>
+                </div>
+                <div class="panel-body">
+                    <ul class="system-list" id="system-status">
+                        <li class="loading">Loading system status...</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Performance Metrics</h2>
+                </div>
+                <div class="panel-body">
+                    <div style="margin-bottom: 2rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Success Rate</span>
+                            <strong id="success-rate">97.6%</strong>
+                        </div>
+                        <div class="metric-bar">
+                            <div class="metric-fill" id="success-rate-bar" style="width: 97.6%"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 2rem;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>Average Execution Time</span>
+                            <strong>2.4s</strong>
+                        </div>
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: 65%; background: linear-gradient(90deg, #f59e0b, #10b981);"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span>System Load</span>
+                            <strong>34%</strong>
+                        </div>
+                        <div class="metric-bar">
+                            <div class="metric-fill" style="width: 34%; background: linear-gradient(90deg, #10b981, #3b82f6);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel" style="margin-top: 2rem;">
+            <div class="panel-header">
+                <h2>🎓 60-Lesson Journey Complete</h2>
+            </div>
+            <div class="panel-body">
+                <p style="line-height: 1.8; color: #475569;">
+                    This dashboard represents the culmination of 60 hands-on lessons in distributed systems design. 
+                    You've built a production-ready task scheduler with leader election, distributed locking, 
+                    message queuing, monitoring, security, and container orchestration. Every component follows 
+                    patterns used by Netflix, Uber, Stripe, and other tech leaders. This isn't a demo—it's real infrastructure.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
