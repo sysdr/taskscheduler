@@ -1,8 +1,0 @@
-target/
-*.log
-*.iml
-.idea/
-.vscode/
-app.pid
-/logs/
-

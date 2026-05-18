@@ -1,8 +1,0 @@
-target/
-.git/
-.idea/
-*.iml
-.DS_Store
-k8s/
-docker/
-README.md

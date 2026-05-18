@@ -1,5 +1,7 @@
 # taskscheduler
-60-Lesson Course Curriculum : Hands-on System Design with Java Spring Boot - TaskSechuler implementation
+Days 1–5 of the 60-lesson course: Hands-on System Design with Java Spring Boot — Task Scheduler implementation.
+
+Paid lessons (days 6–60) live in [taskscheduler-p](https://github.com/sysdr/taskscheduler-p).
 
 Access this course here : https://javatsc.substack.com/
 # Hands-on Task Scheduler Implementation with Java Spring Boot: Ultra Scalable Systems
