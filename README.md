@@ -1,53 +1,45 @@
-# taskscheduler
-Days 1–5 of the 60-lesson course: Hands-on System Design with Java Spring Boot — Task Scheduler implementation.
-
-Paid lessons (days 6–60) live in [taskscheduler-p](https://github.com/sysdr/taskscheduler-p).
-
-Access this course here : https://javatsc.substack.com/
 # Hands-on Task Scheduler Implementation with Java Spring Boot: Ultra Scalable Systems
 
-This course provides an in-depth, hands-on journey into designing and implementing ultra-scalable task schedulers using Java Spring Boot. You will learn every core system design concept, explore diverse use cases, and gain practical experience through daily code lessons, aiming to handle millions of requests per second.
+**1 full lessons from this course are free to read — no signup, no card.** This repository holds the working code for that lesson.
 
-## Course Highlights
+[![Free lessons](https://img.shields.io/badge/free_lessons-1-16703E?style=flat-square)](https://systemdrd.com/courses/hands-on-system-design-scalable-task/?utm_source=github&utm_medium=readme&utm_campaign=taskscheduler) [![Course](https://img.shields.io/badge/full_course-11_lessons-D92B21?style=flat-square)](https://systemdrd.com/courses/hands-on-system-design-scalable-task/?utm_source=github&utm_medium=readme&utm_campaign=taskscheduler) [![Topic](https://img.shields.io/badge/Backend_Engineering-informational?style=flat-square)](https://systemdrd.com/courses/hands-on-system-design-scalable-task/?utm_source=github&utm_medium=readme&utm_campaign=taskscheduler)
 
-### What is this course about?
+## Start with the free lessons
 
-This course is a deep dive into building robust, highly scalable, and fault-tolerant task scheduling systems using Java and Spring Boot. It covers fundamental scheduling concepts, distributed system design principles, advanced Spring features, persistence strategies, monitoring, and operational best practices to handle massive workloads.
+Each lesson is the same one a paying subscriber reads — the full text, not a preview. The code for it is in this repository.
 
-### Why learn Task Scheduler Implementation?
+| | Read the lesson | Code in this repo |
+|---|---|---|
+| **Lesson 1** | [Spring Scheduling Fundamentals](https://systemdrd.com/lessons/lesson-1-spring-scheduling-fundamentals/?utm_source=github&utm_medium=readme&utm_campaign=taskscheduler) | [`day1/`](day1) |
 
-In modern applications, managing background jobs, recurring tasks, and asynchronous operations efficiently is crucial. Learning to implement a scalable task scheduler allows you to build systems capable of processing millions of events, automating business processes, performing batch operations, and ensuring data consistency in complex distributed environments. This skill is vital for backend engineers, system architects, and anyone dealing with high-throughput, event-driven systems.
+## The rest of the course — 11 lessons
 
-### Who is this course for?
+<details><summary>Full curriculum (11 lessons)</summary>
 
-- **Backend Developers (Java/Spring Boot):** Looking to build robust and scalable background processing capabilities.
-- **System Architects:** Designing distributed systems that require reliable task execution.
-- **DevOps Engineers:** Responsible for deploying, managing, and monitoring high-performance applications.
-- **Data Engineers:** Implementing batch processing, ETL pipelines, and data synchronization tasks.
-- **Anyone** interested in distributed systems, concurrency, and building high-throughput services.
+- Lesson 1 : Spring Scheduling Fundamentals — **free, above**
+- Lesson 2 : Dynamic Scheduling Foundations
+- Lesson 3 : Distributed Locking
+- Lesson 5 : Task Lifecycle & Recovery
+- Lesson 6 : Building a Resilient Scheduler
+- Lesson 7 : Event-Driven Task Execution
+- Lesson 8 : Advanced Scheduling Patterns
+- Lesson 9 : Observability & Monitoring
+- Lesson 10 : Management, Security & Testing
+- Lesson 11: Cloud-Native Deployment
+- Lesson 12: Production-Ready Distributed Scheduler
 
-### What's different about this course?
+</details>
 
-- **Hands-On Focus:** Every concept is reinforced with practical, runnable Java/Spring Boot code examples and exercises.
-- **Ultra Scalability:** Emphasizes design patterns, architectural choices, and performance tuning techniques to handle millions of requests per second.
-- **Comprehensive System Design:** Integrates distributed system concepts (consistency, fault tolerance, leader election, distributed locks) directly into scheduler implementation.
-- **Real-world Use Cases:** Explores how large-scale task schedulers are used in various industries and applications.
-- **Structured Learning:** A meticulously organized curriculum with 185 distinct lessons for a thorough understanding.
+## Get the whole course
 
-### Key Topics Covered
+**$199 one-off.** No subscription.
 
-- Core Scheduling Concepts (`@Scheduled`, Cron, Fixed-Rate, Fixed-Delay)
-- Concurrency and Thread Pool Management in Spring Boot
-- System Design for Distributed Schedulers (CAP Theorem, Consistency Models)
-- Leader Election Mechanisms (ZooKeeper, Consul, Database-based)
-- Distributed Locks and Mutual Exclusion
-- Task Persistence and State Management (Database, Redis, etc.)
-- Fault Tolerance, Retries, and Idempotency
-- Monitoring, Logging, and Alerting for Distributed Systems
-- Performance Tuning and Bottleneck Identification
-- Security Considerations for Task Execution
-- Deployment Strategies (Docker, Kubernetes, Cloud Platforms)
-- Integration with Messaging Queues (Kafka, RabbitMQ) for Task Distribution
-- Building Custom Distributed Scheduling Frameworks
-- Real-time Task Processing and Event-Driven Architectures
-- Batch Processing and Workflow Orchestration
+- All 11 lessons, written to the same depth as the 1 free ones above
+- The complete source repository, one commit per lesson, beyond the 1 lessons here
+- Every later lesson builds on the code in this repo, so nothing is thrown away
+
+### [Read the free lessons first →](https://systemdrd.com/courses/hands-on-system-design-scalable-task/?utm_source=github&utm_medium=readme&utm_campaign=taskscheduler)
+
+---
+
+Part of [SystemDR](https://systemdrd.com/courses/?utm_source=github&utm_medium=readme&utm_campaign=taskscheduler) — hands-on engineering courses where you build the system, break it, and fix it. [All courses](https://systemdrd.com/courses/?utm_source=github&utm_medium=readme&utm_campaign=taskscheduler) · [Free lessons across every course](https://systemdrd.com/trial-lessons/?utm_source=github&utm_medium=readme&utm_campaign=taskscheduler)
